@@ -1,6 +1,6 @@
 import { countries, type Country } from '../data/countries';
 
-const WORLD_MAP_URL = '/blank-map-world-v2.svg';
+const WORLD_MAP_URL = `${import.meta.env.BASE_URL}blank-map-world-v2.svg`;
 const MAP_WIDTH = 100;
 const MAP_HEIGHT = 60;
 const REGION = {
