@@ -165,6 +165,7 @@ const App = () => {
           <MapView
             onSelect={setSelected}
             visibleCountries={filteredCountries}
+            activeId={selected?.id}
           />
           {selected && (
             <div className="mt-4 rounded-2xl bg-white p-4 shadow">

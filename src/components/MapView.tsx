@@ -18,8 +18,12 @@ const WORLD_MAP_CROP = {
 const ZOOM_LEVELS = [1, 1.45, 1.9] as const;
 const MAX_ZOOM_INDEX = ZOOM_LEVELS.length - 1;
 type MapShapes = Partial<Record<MapCountryId, string>>;
+type LoadedMap = {
+  appShapes: MapShapes;
+  backgroundShapes: string;
+};
 
-let mapShapesPromise: Promise<MapShapes> | undefined;
+let mapShapesPromise: Promise<LoadedMap> | undefined;
 
 type Props = {
   onSelect: (country: Country) => void;
@@ -27,6 +31,7 @@ type Props = {
   highlightedId?: string;
   correctId?: string;
   selectedId?: string;
+  activeId?: string;
   showLabels?: boolean;
 };
 
@@ -45,12 +50,14 @@ const countryFill = (
   highlightedId: string | undefined,
   correctId: string | undefined,
   selectedId: string | undefined,
+  activeId: string | undefined,
 ) => {
   const isCorrect = correctId === country.id;
   const isSelected = selectedId === country.id;
 
   if (selectedId && isCorrect) return '#22c55e';
   if (isSelected && !isCorrect) return '#f87171';
+  if (activeId === country.id) return '#a855f7';
   if (highlightedId === country.id) return '#f97316';
   if (hoveredId === country.id) return '#38bdf8';
   return undefined;
@@ -88,16 +95,27 @@ const loadMapShapes = () => {
     })
     .then((svg) => {
       const document = new DOMParser().parseFromString(svg, 'image/svg+xml');
-      const shapes: MapShapes = {};
+      const appShapes: MapShapes = {};
+      const appCountryIds = new Set(countries.map((country) => country.id));
 
       for (const country of countries) {
         const element = document.getElementById(country.id);
         if (element) {
-          shapes[country.id as MapCountryId] = sanitizeMapElement(element);
+          appShapes[country.id as MapCountryId] = sanitizeMapElement(element);
         }
       }
 
-      return shapes;
+      const backgroundShapes = Array.from(
+        document.querySelectorAll<SVGElement>('path[id], g[id]'),
+      )
+        .filter((element) => {
+          const id = element.id;
+          return /^[a-z]{2}$/.test(id) && !appCountryIds.has(id);
+        })
+        .map(sanitizeMapElement)
+        .join('');
+
+      return { appShapes, backgroundShapes };
     });
 
   return mapShapesPromise;
@@ -109,11 +127,15 @@ export const MapView = ({
   highlightedId,
   correctId,
   selectedId,
+  activeId,
   showLabels = false,
 }: Props) => {
   const [zoomIndex, setZoomIndex] = useState(0);
   const [hoveredId, setHoveredId] = useState<string>();
-  const [mapShapes, setMapShapes] = useState<MapShapes>({});
+  const [loadedMap, setLoadedMap] = useState<LoadedMap>({
+    appShapes: {},
+    backgroundShapes: '',
+  });
   const zoom = ZOOM_LEVELS[zoomIndex];
   const canZoomOut = zoomIndex > 0;
   const canZoomIn = zoomIndex < MAX_ZOOM_INDEX;
@@ -123,8 +145,8 @@ export const MapView = ({
 
   useEffect(() => {
     let cancelled = false;
-    loadMapShapes().then((shapes) => {
-      if (!cancelled) setMapShapes(shapes);
+    loadMapShapes().then((map) => {
+      if (!cancelled) setLoadedMap(map);
     });
     return () => {
       cancelled = true;
@@ -173,8 +195,16 @@ export const MapView = ({
               className="pointer-events-none"
               transform={`translate(${MAP_SHAPE_OFFSET.x} ${MAP_SHAPE_OFFSET.y})`}
             >
+              {loadedMap.backgroundShapes && (
+                <g
+                  className="map-background-shape"
+                  dangerouslySetInnerHTML={{
+                    __html: loadedMap.backgroundShapes,
+                  }}
+                />
+              )}
               {visibleCountries.map((country) => {
-                const shape = mapShapes[country.id as MapCountryId];
+                const shape = loadedMap.appShapes[country.id as MapCountryId];
                 if (!shape) return null;
 
                 const fill = countryFill(
@@ -183,6 +213,7 @@ export const MapView = ({
                   highlightedId,
                   correctId,
                   selectedId,
+                  activeId,
                 );
 
                 return (
