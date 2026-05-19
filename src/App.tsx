@@ -46,13 +46,28 @@ const App = () => {
     setQuestion(generateQuestion());
   };
 
+  const learnActive = mode === 'learn';
+  const quizActive = mode === 'quiz';
+
   return (
     <main className="mx-auto max-w-4xl p-4 text-slate-900">
       <h1 className="mb-4 text-center text-4xl font-extrabold text-blue-700">🌍 Krajiny hravo</h1>
       <div className="mb-4 flex gap-3">
-        <button className="rounded-xl bg-emerald-500 px-6 py-4 text-2xl font-bold text-white" onClick={() => setMode('learn')}>Učím sa</button>
-        <button className="rounded-xl bg-fuchsia-500 px-6 py-4 text-2xl font-bold text-white" onClick={() => setMode('quiz')}>Skúšanie</button>
-        <button className="rounded-xl bg-slate-600 px-6 py-4 text-2xl font-bold text-white" onClick={resetProgress}>Reset</button>
+        <button
+          className={`rounded-xl border-4 px-6 py-4 text-2xl font-bold ${learnActive ? 'border-emerald-700 bg-emerald-500 text-white shadow' : 'border-transparent bg-emerald-100 text-emerald-900'}`}
+          onClick={() => setMode('learn')}
+          aria-pressed={learnActive}
+        >
+          Učím sa
+        </button>
+        <button
+          className={`rounded-xl border-4 px-6 py-4 text-2xl font-bold ${quizActive ? 'border-fuchsia-700 bg-fuchsia-500 text-white shadow' : 'border-transparent bg-fuchsia-100 text-fuchsia-900'}`}
+          onClick={() => setMode('quiz')}
+          aria-pressed={quizActive}
+        >
+          Skúšanie
+        </button>
+        {quizActive && <button className="rounded-xl bg-slate-600 px-6 py-4 text-2xl font-bold text-white" onClick={resetProgress}>Reset</button>}
       </div>
 
       {mode === 'quiz' && <p className="mb-3 text-xl">✅ {score.correct} | ❌ {score.wrong}</p>}
