@@ -60,16 +60,16 @@ const App = () => {
       <h1 className="mb-4 text-center text-4xl font-extrabold text-blue-700">
         🌍 Krajiny hravo
       </h1>
-      <div className="mb-4 flex gap-3">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:flex sm:gap-3">
         <button
-          className={`rounded-xl border-4 px-6 py-4 text-2xl font-bold ${learnActive ? 'border-emerald-700 bg-emerald-500 text-white shadow' : 'border-transparent bg-emerald-100 text-emerald-900'}`}
+          className={`whitespace-nowrap rounded-xl border-4 px-3 py-3 text-lg font-bold sm:px-6 sm:py-4 sm:text-2xl ${learnActive ? 'border-emerald-700 bg-emerald-500 text-white shadow' : 'border-transparent bg-emerald-100 text-emerald-900'}`}
           onClick={() => setMode('learn')}
           aria-pressed={learnActive}
         >
           Učím sa
         </button>
         <button
-          className={`rounded-xl border-4 px-6 py-4 text-2xl font-bold ${quizActive ? 'border-fuchsia-700 bg-fuchsia-500 text-white shadow' : 'border-transparent bg-fuchsia-100 text-fuchsia-900'}`}
+          className={`whitespace-nowrap rounded-xl border-4 px-3 py-3 text-lg font-bold sm:px-6 sm:py-4 sm:text-2xl ${quizActive ? 'border-fuchsia-700 bg-fuchsia-500 text-white shadow' : 'border-transparent bg-fuchsia-100 text-fuchsia-900'}`}
           onClick={() => setMode('quiz')}
           aria-pressed={quizActive}
         >
@@ -77,7 +77,7 @@ const App = () => {
         </button>
         {quizActive && (
           <button
-            className="rounded-xl bg-slate-600 px-6 py-4 text-2xl font-bold text-white"
+            className="col-span-2 whitespace-nowrap rounded-xl bg-slate-600 px-3 py-3 text-lg font-bold text-white sm:col-span-1 sm:px-6 sm:py-4 sm:text-2xl"
             onClick={resetProgress}
           >
             Reset
