@@ -1,20 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { countries, type Country } from '../data/countries';
 import { mapCenters, type MapCountryId } from '../data/mapCenters';
-import {
-  mapShapeOffset,
-  mapShapes,
-  type MapShapeCountryId,
-} from '../data/mapShapes';
 
 const WORLD_MAP_URL = `${import.meta.env.BASE_URL}blank-map-world-v2.svg`;
 const MAP_WIDTH = 100;
 const MAP_HEIGHT = 60;
-const WORLD_MAP = {
-  x: 0,
-  y: 0,
-  width: 913.906,
-  height: 402.89,
+const MAP_SHAPE_OFFSET = {
+  x: 23.041,
+  y: -19.146,
 };
 const WORLD_MAP_CROP = {
   x: 490,
@@ -24,6 +17,9 @@ const WORLD_MAP_CROP = {
 };
 const ZOOM_LEVELS = [1, 1.45, 1.9] as const;
 const MAX_ZOOM_INDEX = ZOOM_LEVELS.length - 1;
+type MapShapes = Partial<Record<MapCountryId, string>>;
+
+let mapShapesPromise: Promise<MapShapes> | undefined;
 
 type Props = {
   onSelect: (country: Country) => void;
@@ -60,6 +56,53 @@ const countryFill = (
   return undefined;
 };
 
+const sanitizeMapElement = (element: Element) => {
+  const clone = element.cloneNode(true) as Element;
+  const sanitize = (node: Element) => {
+    for (const attribute of [
+      'id',
+      'class',
+      'style',
+      'fill',
+      'stroke',
+      'stroke-width',
+      'stroke-miterlimit',
+      'stroke-dasharray',
+    ]) {
+      node.removeAttribute(attribute);
+    }
+    for (const child of Array.from(node.children)) {
+      sanitize(child);
+    }
+  };
+
+  sanitize(clone);
+  return clone.outerHTML;
+};
+
+const loadMapShapes = () => {
+  mapShapesPromise ??= fetch(WORLD_MAP_URL)
+    .then((response) => {
+      if (!response.ok) throw new Error('Could not load map SVG.');
+      return response.text();
+    })
+    .then((svg) => {
+      const document = new DOMParser().parseFromString(svg, 'image/svg+xml');
+      const shapes: MapShapes = {};
+
+      for (const country of countries) {
+        const element = document.getElementById(country.id);
+        if (element) {
+          shapes[country.id as MapCountryId] = sanitizeMapElement(element);
+        }
+      }
+
+      return shapes;
+    });
+
+  return mapShapesPromise;
+};
+
 export const MapView = ({
   onSelect,
   visibleCountries = countries,
@@ -70,12 +113,23 @@ export const MapView = ({
 }: Props) => {
   const [zoomIndex, setZoomIndex] = useState(0);
   const [hoveredId, setHoveredId] = useState<string>();
+  const [mapShapes, setMapShapes] = useState<MapShapes>({});
   const zoom = ZOOM_LEVELS[zoomIndex];
   const canZoomOut = zoomIndex > 0;
   const canZoomIn = zoomIndex < MAX_ZOOM_INDEX;
   const dotRadius = 1.9 / zoom;
   const highlightedDotRadius = 2.4 / zoom;
   const dotStrokeWidth = 0.45 / zoom;
+
+  useEffect(() => {
+    let cancelled = false;
+    loadMapShapes().then((shapes) => {
+      if (!cancelled) setMapShapes(shapes);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="rounded-2xl bg-sky-100 p-2">
@@ -115,41 +169,35 @@ export const MapView = ({
             viewBox={`${WORLD_MAP_CROP.x} ${WORLD_MAP_CROP.y} ${WORLD_MAP_CROP.width} ${WORLD_MAP_CROP.height}`}
             preserveAspectRatio="none"
           >
-            <image
-              href={WORLD_MAP_URL}
-              x={WORLD_MAP.x}
-              y={WORLD_MAP.y}
-              width={WORLD_MAP.width}
-              height={WORLD_MAP.height}
+            <g
               className="pointer-events-none"
-            />
-          </svg>
-          <g
-            className="pointer-events-none"
-            transform={`translate(${mapShapeOffset.x} ${mapShapeOffset.y})`}
-          >
-            {visibleCountries.map((country) => {
-              const fill = countryFill(
-                country,
-                hoveredId,
-                highlightedId,
-                correctId,
-                selectedId,
-              );
-              if (!fill) return null;
+              transform={`translate(${MAP_SHAPE_OFFSET.x} ${MAP_SHAPE_OFFSET.y})`}
+            >
+              {visibleCountries.map((country) => {
+                const shape = mapShapes[country.id as MapCountryId];
+                if (!shape) return null;
 
-              return (
-                <g
-                  key={country.id}
-                  className="map-country-fill"
-                  style={{ fill }}
-                  dangerouslySetInnerHTML={{
-                    __html: mapShapes[country.id as MapShapeCountryId],
-                  }}
-                />
-              );
-            })}
-          </g>
+                const fill = countryFill(
+                  country,
+                  hoveredId,
+                  highlightedId,
+                  correctId,
+                  selectedId,
+                );
+
+                return (
+                  <g
+                    key={country.id}
+                    className="map-country-shape"
+                    style={{ fill: fill ?? '#bfdbfe' }}
+                    dangerouslySetInnerHTML={{
+                      __html: shape,
+                    }}
+                  />
+                );
+              })}
+            </g>
+          </svg>
           {visibleCountries.map((c) => {
             const point = toPoint(c);
             const highlighted = highlightedId === c.id;

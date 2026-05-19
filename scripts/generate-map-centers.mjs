@@ -282,55 +282,6 @@ const pathPoints = (d) => {
 const boxes = {};
 const stack = [];
 
-const sanitizeCountryShape = (shape) =>
-  shape
-    .replace(/\sstyle="[^"]*"/g, '')
-    .replace(/\sid="[^"]*"/g, '')
-    .replace(/\sfill="[^"]*"/g, '')
-    .replace(/\sstroke="[^"]*"/g, '')
-    .replace(/\sstroke-width="[^"]*"/g, '')
-    .replace(/\sstroke-miterlimit="[^"]*"/g, '')
-    .replace(/\sstroke-dasharray="[^"]*"/g, '');
-
-const countryElementAt = (startIndex) => {
-  const startTagMatch = svg.slice(startIndex).match(/^<([\w:]+)\b[^>]*>/);
-  if (!startTagMatch)
-    throw new Error(`Could not read country element at ${startIndex}.`);
-
-  const [, name] = startTagMatch;
-  const startTag = startTagMatch[0];
-  if (startTag.endsWith('/>')) return startTag;
-
-  const tagPattern = new RegExp(`<\\/?${name}\\b[^>]*>`, 'g');
-  tagPattern.lastIndex = startIndex;
-
-  let depth = 0;
-  let match;
-  while ((match = tagPattern.exec(svg))) {
-    const tag = match[0];
-    if (tag.startsWith('</')) {
-      depth -= 1;
-      if (depth === 0) return svg.slice(startIndex, tagPattern.lastIndex);
-    } else if (!tag.endsWith('/>')) {
-      depth += 1;
-    }
-  }
-
-  throw new Error(`Could not find end of country element "${name}".`);
-};
-
-const countryShapes = {};
-for (const id of countryIds) {
-  const elementMatch = new RegExp(
-    `<(?:path|g)\\b[^>]*\\bid="${id}"[^>]*>`,
-  ).exec(svg);
-  if (!elementMatch)
-    throw new Error(`Could not find country shape "${id}" in SVG.`);
-  countryShapes[id] = sanitizeCountryShape(
-    countryElementAt(elementMatch.index),
-  );
-}
-
 for (const match of svg.matchAll(/<\/?[^>]+>/g)) {
   const tag = match[0];
 
@@ -390,15 +341,3 @@ export type MapCountryId = keyof typeof mapCenters;
 `;
 
 fs.writeFileSync('src/data/mapCenters.ts', body);
-
-const shapeBody = `export const mapShapeOffset = {
-  x: ${Number((-viewBoxX).toFixed(3))},
-  y: ${Number((-viewBoxY).toFixed(3))},
-} as const;
-
-export const mapShapes = ${JSON.stringify(countryShapes, null, 2)} as const;
-
-export type MapShapeCountryId = keyof typeof mapShapes;
-`;
-
-fs.writeFileSync('src/data/mapShapes.ts', shapeBody);
