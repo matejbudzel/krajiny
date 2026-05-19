@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const svg = fs.readFileSync('public/blank-map-world-v2.svg', 'utf8');
 const countries = fs.readFileSync('src/data/countries.ts', 'utf8');
 
-const countryIds = [...countries.matchAll(/id: '([^']+)'/g)].map(
+const countryIds = [...countries.matchAll(/\n    id: '([^']+)'/g)].map(
   (match) => match[1],
 );
 const svgViewBox = svg

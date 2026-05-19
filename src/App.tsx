@@ -1,24 +1,51 @@
 import { useEffect, useMemo, useState } from 'react';
-import { countries, type Country } from './data/countries';
+import {
+  countries,
+  countryScopeOptions,
+  type Country,
+  type CountryScope,
+} from './data/countries';
 import { FlagView } from './components/FlagView';
 import { MapView } from './components/MapView';
 import { generateQuestion, type Question } from './utils/questions';
 import { loadScore, saveScore, type Score } from './utils/storage';
 
+const defaultScopes: CountryScope[] = ['grade3-h2'];
+const defaultCountries = countries.filter((country) =>
+  defaultScopes.includes(country.scope),
+);
+
 const App = () => {
   const [mode, setMode] = useState<'learn' | 'quiz'>('learn');
+  const [selectedScopes, setSelectedScopes] =
+    useState<CountryScope[]>(defaultScopes);
   const [selected, setSelected] = useState<Country | null>(null);
-  const [question, setQuestion] = useState<Question>(() => generateQuestion());
+  const [question, setQuestion] = useState<Question>(() =>
+    generateQuestion(undefined, defaultCountries),
+  );
   const [result, setResult] = useState<string>('');
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [score, setScore] = useState<Score>(() => loadScore());
 
   useEffect(() => saveScore(score), [score]);
 
+  const filteredCountries = useMemo(
+    () => countries.filter((country) => selectedScopes.includes(country.scope)),
+    [selectedScopes],
+  );
   const countryById = useMemo(
     () => new Map(countries.map((c) => [c.id, c])),
     [],
   );
+  const allScopesSelected =
+    selectedScopes.length === countryScopeOptions.length;
+
+  useEffect(() => {
+    setSelected(null);
+    setSelectedAnswer(null);
+    setResult('');
+    setQuestion(generateQuestion(undefined, filteredCountries));
+  }, [filteredCountries]);
 
   const answer = (value: string) => {
     if (selectedAnswer) return;
@@ -39,7 +66,7 @@ const App = () => {
       score.mistakes.length > 0 && Math.random() < 0.6
         ? score.mistakes[Math.floor(Math.random() * score.mistakes.length)]
         : undefined;
-    setQuestion(generateQuestion(targetMistake));
+    setQuestion(generateQuestion(targetMistake, filteredCountries));
     setResult('');
     setSelectedAnswer(null);
   };
@@ -49,7 +76,23 @@ const App = () => {
     setSelected(null);
     setSelectedAnswer(null);
     setResult('');
-    setQuestion(generateQuestion());
+    setQuestion(generateQuestion(undefined, filteredCountries));
+  };
+
+  const toggleAllScopes = () => {
+    setSelectedScopes(
+      allScopesSelected
+        ? defaultScopes
+        : countryScopeOptions.map((scope) => scope.id),
+    );
+  };
+
+  const toggleScope = (scope: CountryScope) => {
+    setSelectedScopes((current) => {
+      if (!current.includes(scope)) return [...current, scope];
+      if (current.length === 1) return current;
+      return current.filter((selectedScope) => selectedScope !== scope);
+    });
   };
 
   const learnActive = mode === 'learn';
@@ -84,6 +127,32 @@ const App = () => {
           </button>
         )}
       </div>
+      <fieldset className="mb-4 rounded-xl bg-white p-3 shadow">
+        <legend className="mb-2 text-lg font-bold">Rozsah</legend>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
+            <input
+              type="checkbox"
+              checked={allScopesSelected}
+              onChange={toggleAllScopes}
+            />
+            Všetko
+          </label>
+          {countryScopeOptions.map((scope) => (
+            <label
+              key={scope.id}
+              className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold"
+            >
+              <input
+                type="checkbox"
+                checked={selectedScopes.includes(scope.id)}
+                onChange={() => toggleScope(scope.id)}
+              />
+              {scope.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       {mode === 'quiz' && (
         <p className="mb-3 text-xl">
@@ -93,7 +162,10 @@ const App = () => {
 
       {mode === 'learn' && (
         <section>
-          <MapView onSelect={setSelected} />
+          <MapView
+            onSelect={setSelected}
+            visibleCountries={filteredCountries}
+          />
           {selected && (
             <div className="mt-4 rounded-2xl bg-white p-4 shadow">
               <FlagView country={selected} />
@@ -142,11 +214,16 @@ const App = () => {
             </div>
           )}
           {question.type === 'map-country' && question.country && (
-            <MapView onSelect={() => {}} highlightedId={question.country.id} />
+            <MapView
+              onSelect={() => {}}
+              visibleCountries={filteredCountries}
+              highlightedId={question.country.id}
+            />
           )}
           {question.type === 'country-map-click' && (
             <MapView
               onSelect={(c) => answer(c.id)}
+              visibleCountries={filteredCountries}
               correctId={question.answer}
               selectedId={selectedAnswer ?? undefined}
             />

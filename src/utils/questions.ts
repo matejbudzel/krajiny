@@ -16,14 +16,19 @@ export type Question = {
   feedbackAnswer: string;
 };
 
-const wrongCountries = (country: Country): Country[] =>
-  countries.filter((c) => c.id !== country.id);
+const wrongCountries = (
+  country: Country,
+  sourceCountries: Country[],
+): Country[] => sourceCountries.filter((c) => c.id !== country.id);
 
-export const generateQuestion = (preferredCountryId?: string): Question => {
+export const generateQuestion = (
+  preferredCountryId?: string,
+  sourceCountries: Country[] = countries,
+): Question => {
   const preferred = preferredCountryId
-    ? countries.find((c) => c.id === preferredCountryId)
+    ? sourceCountries.find((c) => c.id === preferredCountryId)
     : undefined;
-  const country = preferred ?? pickN(countries, 1)[0];
+  const country = preferred ?? pickN(sourceCountries, 1)[0];
   const type = pickN(
     [
       'flag-country',
@@ -35,7 +40,7 @@ export const generateQuestion = (preferredCountryId?: string): Question => {
     ],
     1,
   )[0] as Question['type'];
-  const wrong = pickN(wrongCountries(country), 2);
+  const wrong = pickN(wrongCountries(country, sourceCountries), 2);
 
   if (type === 'country-map-click') {
     return {

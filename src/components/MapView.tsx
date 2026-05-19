@@ -12,15 +12,16 @@ const WORLD_MAP = {
   height: 402.89,
 };
 const WORLD_MAP_CROP = {
-  x: 485,
-  y: 95,
-  width: 190,
-  height: 114,
+  x: 490,
+  y: 78,
+  width: 280,
+  height: 168,
 };
 const ZOOM_LEVELS = [1, 1.45, 1.9] as const;
 
 type Props = {
   onSelect: (country: Country) => void;
+  visibleCountries?: Country[];
   highlightedId?: string;
   correctId?: string;
   selectedId?: string;
@@ -38,6 +39,7 @@ const toPoint = (country: Country) => {
 
 export const MapView = ({
   onSelect,
+  visibleCountries = countries,
   highlightedId,
   correctId,
   selectedId,
@@ -87,7 +89,7 @@ export const MapView = ({
               className="pointer-events-none"
             />
           </svg>
-          {countries.map((c) => {
+          {visibleCountries.map((c) => {
             const point = toPoint(c);
             const highlighted = highlightedId === c.id;
             const isCorrect = correctId === c.id;

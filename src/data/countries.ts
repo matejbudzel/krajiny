@@ -1,3 +1,10 @@
+export type CountryScope = 'grade3-h1' | 'grade3-h2';
+
+export const countryScopeOptions: { id: CountryScope; label: string }[] = [
+  { id: 'grade3-h1', label: '3. ročník I. polrok' },
+  { id: 'grade3-h2', label: '3. ročník II. polrok' },
+];
+
 export type Country = {
   id: string;
   name: string;
@@ -5,6 +12,7 @@ export type Country = {
   flag: string;
   lat: number;
   lon: number;
+  scope: CountryScope;
   afghanistanCustomFlag?: boolean;
 };
 
@@ -16,6 +24,7 @@ export const countries: Country[] = [
     flag: '🇦🇲',
     lat: 40.2,
     lon: 44.5,
+    scope: 'grade3-h2',
   },
   {
     id: 'az',
@@ -24,6 +33,7 @@ export const countries: Country[] = [
     flag: '🇦🇿',
     lat: 40.4,
     lon: 49.9,
+    scope: 'grade3-h2',
   },
   {
     id: 'ge',
@@ -32,6 +42,7 @@ export const countries: Country[] = [
     flag: '🇬🇪',
     lat: 41.7,
     lon: 44.8,
+    scope: 'grade3-h2',
   },
   {
     id: 'tr',
@@ -40,6 +51,7 @@ export const countries: Country[] = [
     flag: '🇹🇷',
     lat: 39.9,
     lon: 32.9,
+    scope: 'grade3-h2',
   },
   {
     id: 'iq',
@@ -48,6 +60,7 @@ export const countries: Country[] = [
     flag: '🇮🇶',
     lat: 33.3,
     lon: 44.4,
+    scope: 'grade3-h2',
   },
   {
     id: 'il',
@@ -56,6 +69,7 @@ export const countries: Country[] = [
     flag: '🇮🇱',
     lat: 31.8,
     lon: 35.2,
+    scope: 'grade3-h2',
   },
   {
     id: 'jo',
@@ -64,6 +78,7 @@ export const countries: Country[] = [
     flag: '🇯🇴',
     lat: 31.9,
     lon: 35.9,
+    scope: 'grade3-h2',
   },
   {
     id: 'lb',
@@ -72,6 +87,7 @@ export const countries: Country[] = [
     flag: '🇱🇧',
     lat: 33.9,
     lon: 35.5,
+    scope: 'grade3-h2',
   },
   {
     id: 'sy',
@@ -80,6 +96,7 @@ export const countries: Country[] = [
     flag: '🇸🇾',
     lat: 33.5,
     lon: 36.3,
+    scope: 'grade3-h2',
   },
   {
     id: 'om',
@@ -88,6 +105,7 @@ export const countries: Country[] = [
     flag: '🇴🇲',
     lat: 23.6,
     lon: 58.4,
+    scope: 'grade3-h2',
   },
   {
     id: 'ae',
@@ -96,6 +114,7 @@ export const countries: Country[] = [
     flag: '🇦🇪',
     lat: 24.5,
     lon: 54.4,
+    scope: 'grade3-h2',
   },
   {
     id: 'sa',
@@ -104,6 +123,7 @@ export const countries: Country[] = [
     flag: '🇸🇦',
     lat: 24.7,
     lon: 46.7,
+    scope: 'grade3-h2',
   },
   {
     id: 'af',
@@ -112,6 +132,7 @@ export const countries: Country[] = [
     flag: '',
     lat: 34.5,
     lon: 69.2,
+    scope: 'grade3-h2',
     afghanistanCustomFlag: true,
   },
   {
@@ -121,6 +142,7 @@ export const countries: Country[] = [
     flag: '🇧🇩',
     lat: 23.8,
     lon: 90.4,
+    scope: 'grade3-h2',
   },
   {
     id: 'bt',
@@ -129,6 +151,7 @@ export const countries: Country[] = [
     flag: '🇧🇹',
     lat: 27.5,
     lon: 89.6,
+    scope: 'grade3-h2',
   },
   {
     id: 'in',
@@ -137,6 +160,7 @@ export const countries: Country[] = [
     flag: '🇮🇳',
     lat: 28.6,
     lon: 77.2,
+    scope: 'grade3-h2',
   },
   {
     id: 'ir',
@@ -145,6 +169,7 @@ export const countries: Country[] = [
     flag: '🇮🇷',
     lat: 35.7,
     lon: 51.4,
+    scope: 'grade3-h2',
   },
   {
     id: 'np',
@@ -153,6 +178,7 @@ export const countries: Country[] = [
     flag: '🇳🇵',
     lat: 27.7,
     lon: 85.3,
+    scope: 'grade3-h2',
   },
   {
     id: 'pk',
@@ -161,5 +187,168 @@ export const countries: Country[] = [
     flag: '🇵🇰',
     lat: 33.7,
     lon: 73.1,
+    scope: 'grade3-h2',
+  },
+  {
+    id: 'kz',
+    name: 'Kazachstan',
+    capital: 'Astana',
+    flag: '🇰🇿',
+    lat: 51.2,
+    lon: 71.4,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'tm',
+    name: 'Turkménsko',
+    capital: 'Ašchabad',
+    flag: '🇹🇲',
+    lat: 37.9,
+    lon: 58.4,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'uz',
+    name: 'Uzbekistan',
+    capital: 'Taškent',
+    flag: '🇺🇿',
+    lat: 41.3,
+    lon: 69.2,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'mn',
+    name: 'Mongolsko',
+    capital: 'Ulanbátar',
+    flag: '🇲🇳',
+    lat: 47.9,
+    lon: 106.9,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'cn',
+    name: 'Čína',
+    capital: 'Peking',
+    flag: '🇨🇳',
+    lat: 39.9,
+    lon: 116.4,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'jp',
+    name: 'Japonsko',
+    capital: 'Tokio',
+    flag: '🇯🇵',
+    lat: 35.7,
+    lon: 139.7,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'kp',
+    name: 'Kórejská ľudovodemokratická republika (KĽDR)',
+    capital: 'Pchjongjang',
+    flag: '🇰🇵',
+    lat: 39,
+    lon: 125.8,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'kr',
+    name: 'Kórejská republika',
+    capital: 'Soul',
+    flag: '🇰🇷',
+    lat: 37.6,
+    lon: 127,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'bn',
+    name: 'Brunej',
+    capital: 'Bandar Seri Begawan',
+    flag: '🇧🇳',
+    lat: 4.9,
+    lon: 114.9,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'ph',
+    name: 'Filipíny',
+    capital: 'Manila',
+    flag: '🇵🇭',
+    lat: 14.6,
+    lon: 121,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'id',
+    name: 'Indonézia',
+    capital: 'Jakarta',
+    flag: '🇮🇩',
+    lat: -6.2,
+    lon: 106.8,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'my',
+    name: 'Malajzia',
+    capital: 'Kuala Lumpur',
+    flag: '🇲🇾',
+    lat: 3.1,
+    lon: 101.7,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'sg',
+    name: 'Singapur',
+    capital: 'Singapur',
+    flag: '🇸🇬',
+    lat: 1.3,
+    lon: 103.8,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'kh',
+    name: 'Kambodža',
+    capital: 'Phnom Penh',
+    flag: '🇰🇭',
+    lat: 11.6,
+    lon: 104.9,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'la',
+    name: 'Laos',
+    capital: 'Vientian',
+    flag: '🇱🇦',
+    lat: 17.9,
+    lon: 102.6,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'mm',
+    name: 'Mjanmarsko',
+    capital: 'Nay Pyi Taw',
+    flag: '🇲🇲',
+    lat: 19.8,
+    lon: 96.1,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'th',
+    name: 'Thajsko',
+    capital: 'Bangkok',
+    flag: '🇹🇭',
+    lat: 13.8,
+    lon: 100.5,
+    scope: 'grade3-h1',
+  },
+  {
+    id: 'vn',
+    name: 'Vietnam',
+    capital: 'Hanoj',
+    flag: '🇻🇳',
+    lat: 21,
+    lon: 105.8,
+    scope: 'grade3-h1',
   },
 ];
