@@ -77,7 +77,12 @@ const App = () => {
           {(question.type === 'country-flag' && question.options) && (
             <div className="my-4 grid grid-cols-3 gap-3">{question.options.map((id) => {
               const c = countryById.get(id)!;
-              return <button key={id} className="rounded-xl border-2 p-4" onClick={() => answer(id)}><FlagView country={c} /></button>;
+              const picked = selectedAnswer === id;
+              const correct = question.answer === id;
+              const revealed = selectedAnswer !== null;
+              const bg = revealed && correct ? 'bg-green-300' : (picked ? 'bg-rose-300' : 'bg-white');
+              const border = revealed && correct ? 'border-4 border-green-600' : 'border-2 border-slate-200';
+              return <button key={id} className={`rounded-xl p-4 ${bg} ${border}`} onClick={() => answer(id)}><FlagView country={c} /></button>;
             })}</div>
           )}
           {question.type === 'map-country' && question.country && <MapView onSelect={() => {}} highlightedId={question.country.id} />}
@@ -86,8 +91,9 @@ const App = () => {
             <div className="mt-4 grid gap-3">{question.options.map((option) => {
               const picked = selectedAnswer === option;
               const correct = question.answer === option;
-              const bg = picked ? (correct ? 'bg-green-300' : 'bg-rose-300') : 'bg-amber-200';
-              const border = correct ? 'border-4 border-green-600' : 'border-2 border-transparent';
+              const revealed = selectedAnswer !== null;
+              const bg = revealed && correct ? 'bg-green-300' : (picked ? 'bg-rose-300' : 'bg-amber-200');
+              const border = revealed && correct ? 'border-4 border-green-600' : 'border-2 border-transparent';
               return <button key={option} className={`rounded-xl p-4 text-left text-xl font-bold ${bg} ${border}`} onClick={() => answer(option)}>{option}</button>;
             })}</div>
           )}

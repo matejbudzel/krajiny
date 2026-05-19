@@ -1,5 +1,27 @@
 import { countries, type Country } from '../data/countries';
 
+const WORLD_MAP_URL = '/blank-map-world-v2.svg';
+const MAP_WIDTH = 100;
+const MAP_HEIGHT = 60;
+const REGION = {
+  minLat: 15,
+  maxLat: 45,
+  minLon: 30,
+  maxLon: 95,
+};
+const WORLD_MAP = {
+  x: -23.041,
+  y: 19.146,
+  width: 913.906,
+  height: 402.89,
+};
+const WORLD_MAP_CROP = {
+  x: 490,
+  y: 105,
+  width: 220,
+  height: 135,
+};
+
 type Props = {
   onSelect: (country: Country) => void;
   highlightedId?: string;
@@ -9,43 +31,31 @@ type Props = {
 };
 
 const toPoint = (lat: number, lon: number) => {
-  const x = ((lon - 30) / (95 - 30)) * 100;
-  const y = 100 - ((lat - 15) / (45 - 15)) * 100;
+  const x = ((lon - REGION.minLon) / (REGION.maxLon - REGION.minLon)) * MAP_WIDTH;
+  const y = MAP_HEIGHT - ((lat - REGION.minLat) / (REGION.maxLat - REGION.minLat)) * MAP_HEIGHT;
   return { x, y };
 };
 
-const regionBorder = [
-  [15, 30], [16, 36], [21, 42], [23, 53], [25, 59], [27, 68], [31, 76], [36, 82], [40, 92], [44, 88], [43, 74], [40, 62], [38, 54], [36, 46], [35, 38], [33, 32], [28, 31], [23, 33], [19, 35],
-];
-
-const toPolygon = (c: Country) => {
-  const w = 2.2;
-  const h = 1.8;
-  const corners = [
-    [c.lat - h, c.lon - w],
-    [c.lat - h, c.lon + w],
-    [c.lat + h, c.lon + w],
-    [c.lat + h, c.lon - w],
-  ] as const;
-  return corners.map(([lat, lon]) => {
-    const p = toPoint(lat, lon);
-    return `${p.x},${p.y}`;
-  }).join(' ');
-};
-
 export const MapView = ({ onSelect, highlightedId, correctId, selectedId, showLabels = false }: Props) => (
-  <div className="rounded-2xl bg-blue-100 p-2">
-    <svg viewBox="0 0 100 100" className="h-72 w-full rounded-xl bg-gradient-to-b from-cyan-200 to-blue-300">
-      <polygon
-        points={regionBorder.map(([lat, lon]) => {
-          const p = toPoint(lat, lon);
-          return `${p.x},${p.y}`;
-        }).join(' ')}
-        fill="#d9f99d"
-        stroke="#64748b"
-        strokeWidth="0.8"
-        opacity="0.9"
-      />
+  <div className="rounded-2xl bg-sky-100 p-2">
+    <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="h-72 w-full rounded-xl bg-sky-100">
+      <svg
+        x="0"
+        y="0"
+        width={MAP_WIDTH}
+        height={MAP_HEIGHT}
+        viewBox={`${WORLD_MAP_CROP.x} ${WORLD_MAP_CROP.y} ${WORLD_MAP_CROP.width} ${WORLD_MAP_CROP.height}`}
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <image
+          href={WORLD_MAP_URL}
+          x={WORLD_MAP.x}
+          y={WORLD_MAP.y}
+          width={WORLD_MAP.width}
+          height={WORLD_MAP.height}
+          className="pointer-events-none"
+        />
+      </svg>
       {countries.map((c) => {
         const point = toPoint(c.lat, c.lon);
         const highlighted = highlightedId === c.id;
@@ -54,19 +64,14 @@ export const MapView = ({ onSelect, highlightedId, correctId, selectedId, showLa
         const fill = isSelected ? (isCorrect ? '#22c55e' : '#f87171') : (highlighted ? '#f97316' : '#1d4ed8');
         return (
           <g key={c.id}>
-            <polygon
-              points={toPolygon(c)}
-              fill={isSelected ? (isCorrect ? '#86efac' : '#fca5a5') : '#bbf7d0'}
-              stroke={isCorrect ? '#16a34a' : '#65a30d'}
-              strokeWidth={isCorrect ? 1.2 : 0.4}
-              opacity="0.7"
-            />
             <circle
               cx={point.x}
               cy={point.y}
-              r={highlighted ? 3.2 : 2.5}
+              r={highlighted ? 2.4 : 1.9}
               className="cursor-pointer"
               fill={fill}
+              stroke="#ffffff"
+              strokeWidth="0.45"
               onClick={() => onSelect(c)}
             />
             {showLabels && <text x={point.x + 2.5} y={point.y - 2} fontSize="3" fill="#0f172a">{c.name}</text>}

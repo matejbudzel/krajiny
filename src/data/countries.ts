@@ -24,7 +24,7 @@ export const countries: Country[] = [
   { id: 'af', name: 'Afganistan', capital: 'Kábul', flag: '', lat: 34.5, lon: 69.2, afghanistanCustomFlag: true },
   { id: 'bd', name: 'Bangladéš', capital: 'Dháka', flag: '🇧🇩', lat: 23.8, lon: 90.4 },
   { id: 'bt', name: 'Bhután', capital: 'Thimphu', flag: '🇧🇹', lat: 27.5, lon: 89.6 },
-  { id: 'in', name: 'India', capital: 'Naí Dillí', flag: '🇮🇳', lat: 28.6, lon: 77.2 },
+  { id: 'in', name: 'India', capital: 'New Delhi', flag: '🇮🇳', lat: 28.6, lon: 77.2 },
   { id: 'ir', name: 'Irán', capital: 'Teherán', flag: '🇮🇷', lat: 35.7, lon: 51.4 },
   { id: 'np', name: 'Nepál', capital: 'Káthmandu', flag: '🇳🇵', lat: 27.7, lon: 85.3 },
   { id: 'pk', name: 'Pakistan', capital: 'Islamabad', flag: '🇵🇰', lat: 33.7, lon: 73.1 }
