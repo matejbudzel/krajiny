@@ -10,3 +10,9 @@ button:focus-visible {
   outline: 3px solid #1d4ed8;
   outline-offset: 2px;
 }
+
+.map-country-fill {
+  opacity: 0.45;
+  stroke: #ffffff;
+  stroke-width: 0.3;
+}

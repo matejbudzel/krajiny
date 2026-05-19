@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { countries, type Country } from '../data/countries';
 import { mapCenters, type MapCountryId } from '../data/mapCenters';
+import {
+  mapShapeOffset,
+  mapShapes,
+  type MapShapeCountryId,
+} from '../data/mapShapes';
 
 const WORLD_MAP_URL = `${import.meta.env.BASE_URL}blank-map-world-v2.svg`;
 const MAP_WIDTH = 100;
@@ -38,6 +43,23 @@ const toPoint = (country: Country) => {
   return { x, y };
 };
 
+const countryFill = (
+  country: Country,
+  hoveredId: string | undefined,
+  highlightedId: string | undefined,
+  correctId: string | undefined,
+  selectedId: string | undefined,
+) => {
+  const isCorrect = correctId === country.id;
+  const isSelected = selectedId === country.id;
+
+  if (selectedId && isCorrect) return '#22c55e';
+  if (isSelected && !isCorrect) return '#f87171';
+  if (highlightedId === country.id) return '#f97316';
+  if (hoveredId === country.id) return '#38bdf8';
+  return undefined;
+};
+
 export const MapView = ({
   onSelect,
   visibleCountries = countries,
@@ -47,6 +69,7 @@ export const MapView = ({
   showLabels = false,
 }: Props) => {
   const [zoomIndex, setZoomIndex] = useState(0);
+  const [hoveredId, setHoveredId] = useState<string>();
   const zoom = ZOOM_LEVELS[zoomIndex];
   const canZoomOut = zoomIndex > 0;
   const canZoomIn = zoomIndex < MAX_ZOOM_INDEX;
@@ -101,6 +124,32 @@ export const MapView = ({
               className="pointer-events-none"
             />
           </svg>
+          <g
+            className="pointer-events-none"
+            transform={`translate(${mapShapeOffset.x} ${mapShapeOffset.y})`}
+          >
+            {visibleCountries.map((country) => {
+              const fill = countryFill(
+                country,
+                hoveredId,
+                highlightedId,
+                correctId,
+                selectedId,
+              );
+              if (!fill) return null;
+
+              return (
+                <g
+                  key={country.id}
+                  className="map-country-fill"
+                  style={{ fill }}
+                  dangerouslySetInnerHTML={{
+                    __html: mapShapes[country.id as MapShapeCountryId],
+                  }}
+                />
+              );
+            })}
+          </g>
           {visibleCountries.map((c) => {
             const point = toPoint(c);
             const highlighted = highlightedId === c.id;
@@ -129,6 +178,8 @@ export const MapView = ({
                   stroke="#ffffff"
                   strokeWidth={dotStrokeWidth}
                   onClick={() => onSelect(c)}
+                  onMouseEnter={() => setHoveredId(c.id)}
+                  onMouseLeave={() => setHoveredId(undefined)}
                 />
                 {showLabels && (
                   <text
