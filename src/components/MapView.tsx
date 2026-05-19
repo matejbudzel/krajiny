@@ -18,6 +18,7 @@ const WORLD_MAP_CROP = {
   height: 168,
 };
 const ZOOM_LEVELS = [1, 1.45, 1.9] as const;
+const MAX_ZOOM_INDEX = ZOOM_LEVELS.length - 1;
 
 type Props = {
   onSelect: (country: Country) => void;
@@ -45,26 +46,37 @@ export const MapView = ({
   selectedId,
   showLabels = false,
 }: Props) => {
-  const [zoom, setZoom] = useState<(typeof ZOOM_LEVELS)[number]>(1);
+  const [zoomIndex, setZoomIndex] = useState(0);
+  const zoom = ZOOM_LEVELS[zoomIndex];
+  const canZoomOut = zoomIndex > 0;
+  const canZoomIn = zoomIndex < MAX_ZOOM_INDEX;
+  const dotRadius = 1.9 / zoom;
+  const highlightedDotRadius = 2.4 / zoom;
+  const dotStrokeWidth = 0.45 / zoom;
 
   return (
     <div className="rounded-2xl bg-sky-100 p-2">
       <div className="mb-2 flex justify-end gap-1">
-        {ZOOM_LEVELS.map((level) => (
-          <button
-            key={level}
-            type="button"
-            className={`rounded-lg border px-3 py-2 text-sm font-bold ${
-              zoom === level
-                ? 'border-blue-700 bg-blue-600 text-white'
-                : 'border-blue-200 bg-white text-blue-900'
-            }`}
-            onClick={() => setZoom(level)}
-            aria-pressed={zoom === level}
-          >
-            {level === 1 ? '1x' : `${level.toFixed(1)}x`}
-          </button>
-        ))}
+        <button
+          type="button"
+          className="h-10 w-10 rounded-lg border border-blue-200 bg-white text-xl font-bold text-blue-900 disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={() => setZoomIndex((current) => Math.max(0, current - 1))}
+          disabled={!canZoomOut}
+          aria-label="Oddialiť mapu"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className="h-10 w-10 rounded-lg border border-blue-200 bg-white text-xl font-bold text-blue-900 disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={() =>
+            setZoomIndex((current) => Math.min(MAX_ZOOM_INDEX, current + 1))
+          }
+          disabled={!canZoomIn}
+          aria-label="Priblížiť mapu"
+        >
+          +
+        </button>
       </div>
       <div className="max-h-[70vh] overflow-auto rounded-xl bg-sky-100">
         <svg
@@ -94,23 +106,28 @@ export const MapView = ({
             const highlighted = highlightedId === c.id;
             const isCorrect = correctId === c.id;
             const isSelected = selectedId === c.id;
-            const fill = isSelected
-              ? isCorrect
-                ? '#22c55e'
-                : '#f87171'
-              : highlighted
-                ? '#f97316'
-                : '#1d4ed8';
+            const shouldRevealCorrect = Boolean(selectedId && isCorrect);
+            const fill = shouldRevealCorrect
+              ? '#22c55e'
+              : isSelected
+                ? '#f87171'
+                : highlighted
+                  ? '#f97316'
+                  : '#1d4ed8';
             return (
               <g key={c.id}>
                 <circle
                   cx={point.x}
                   cy={point.y}
-                  r={highlighted ? 2.4 : 1.9}
+                  r={
+                    highlighted || shouldRevealCorrect
+                      ? highlightedDotRadius
+                      : dotRadius
+                  }
                   className="cursor-pointer"
                   fill={fill}
                   stroke="#ffffff"
-                  strokeWidth="0.45"
+                  strokeWidth={dotStrokeWidth}
                   onClick={() => onSelect(c)}
                 />
                 {showLabels && (
