@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { countries, type Country } from '../data/countries';
 import { mapCenters, type MapCountryId } from '../data/mapCenters';
 
@@ -9,18 +9,22 @@ const MAP_SHAPE_OFFSET = {
   x: 23.041,
   y: -19.146,
 };
-const WORLD_MAP_CROP = {
+const DEFAULT_WORLD_MAP_CROP = {
   x: 490,
   y: 78,
   width: 280,
   height: 168,
+};
+const MAP_CROP_PADDING = {
+  x: 24,
+  y: 22,
 };
 const ZOOM_LEVELS = [1, 1.45, 1.9] as const;
 const MAX_ZOOM_INDEX = ZOOM_LEVELS.length - 1;
 type MapShapes = Partial<Record<MapCountryId, string>>;
 type LoadedMap = {
   appShapes: MapShapes;
-  backgroundShapes: string;
+  allShapes: Record<string, string>;
 };
 
 let mapShapesPromise: Promise<LoadedMap> | undefined;
@@ -35,12 +39,29 @@ type Props = {
   showLabels?: boolean;
 };
 
-const toPoint = (country: Country) => {
+const cropForCountries = (visibleCountries: Country[]) => {
+  if (visibleCountries.length === 0) return DEFAULT_WORLD_MAP_CROP;
+
+  const points = visibleCountries.map(
+    (country) => mapCenters[country.id as MapCountryId],
+  );
+  const minX = Math.min(...points.map((point) => point.x));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxY = Math.max(...points.map((point) => point.y));
+
+  return {
+    x: minX - MAP_CROP_PADDING.x,
+    y: minY - MAP_CROP_PADDING.y,
+    width: maxX - minX + MAP_CROP_PADDING.x * 2,
+    height: maxY - minY + MAP_CROP_PADDING.y * 2,
+  };
+};
+
+const toPoint = (country: Country, crop: typeof DEFAULT_WORLD_MAP_CROP) => {
   const svgPoint = mapCenters[country.id as MapCountryId];
-  const x =
-    ((svgPoint.x - WORLD_MAP_CROP.x) / WORLD_MAP_CROP.width) * MAP_WIDTH;
-  const y =
-    ((svgPoint.y - WORLD_MAP_CROP.y) / WORLD_MAP_CROP.height) * MAP_HEIGHT;
+  const x = ((svgPoint.x - crop.x) / crop.width) * MAP_WIDTH;
+  const y = ((svgPoint.y - crop.y) / crop.height) * MAP_HEIGHT;
   return { x, y };
 };
 
@@ -96,7 +117,7 @@ const loadMapShapes = () => {
     .then((svg) => {
       const document = new DOMParser().parseFromString(svg, 'image/svg+xml');
       const appShapes: MapShapes = {};
-      const appCountryIds = new Set(countries.map((country) => country.id));
+      const allShapes: Record<string, string> = {};
 
       for (const country of countries) {
         const element = document.getElementById(country.id);
@@ -105,17 +126,15 @@ const loadMapShapes = () => {
         }
       }
 
-      const backgroundShapes = Array.from(
+      for (const element of Array.from(
         document.querySelectorAll<SVGElement>('path[id], g[id]'),
-      )
-        .filter((element) => {
-          const id = element.id;
-          return /^[a-z]{2}$/.test(id) && !appCountryIds.has(id);
-        })
-        .map(sanitizeMapElement)
-        .join('');
+      )) {
+        if (/^[a-z]{2}$/.test(element.id)) {
+          allShapes[element.id] = sanitizeMapElement(element);
+        }
+      }
 
-      return { appShapes, backgroundShapes };
+      return { appShapes, allShapes };
     });
 
   return mapShapesPromise;
@@ -134,8 +153,16 @@ export const MapView = ({
   const [hoveredId, setHoveredId] = useState<string>();
   const [loadedMap, setLoadedMap] = useState<LoadedMap>({
     appShapes: {},
-    backgroundShapes: '',
+    allShapes: {},
   });
+  const crop = useMemo(
+    () => cropForCountries(visibleCountries),
+    [visibleCountries],
+  );
+  const visibleCountryIds = useMemo(
+    () => new Set(visibleCountries.map((country) => country.id)),
+    [visibleCountries],
+  );
   const zoom = ZOOM_LEVELS[zoomIndex];
   const canZoomOut = zoomIndex > 0;
   const canZoomIn = zoomIndex < MAX_ZOOM_INDEX;
@@ -188,21 +215,22 @@ export const MapView = ({
             y="0"
             width={MAP_WIDTH}
             height={MAP_HEIGHT}
-            viewBox={`${WORLD_MAP_CROP.x} ${WORLD_MAP_CROP.y} ${WORLD_MAP_CROP.width} ${WORLD_MAP_CROP.height}`}
+            viewBox={`${crop.x} ${crop.y} ${crop.width} ${crop.height}`}
             preserveAspectRatio="none"
           >
             <g
               className="pointer-events-none"
               transform={`translate(${MAP_SHAPE_OFFSET.x} ${MAP_SHAPE_OFFSET.y})`}
             >
-              {loadedMap.backgroundShapes && (
-                <g
-                  className="map-background-shape"
-                  dangerouslySetInnerHTML={{
-                    __html: loadedMap.backgroundShapes,
-                  }}
-                />
-              )}
+              {Object.entries(loadedMap.allShapes)
+                .filter(([id]) => !visibleCountryIds.has(id))
+                .map(([id, shape]) => (
+                  <g
+                    key={id}
+                    className="map-background-shape"
+                    dangerouslySetInnerHTML={{ __html: shape }}
+                  />
+                ))}
               {visibleCountries.map((country) => {
                 const shape = loadedMap.appShapes[country.id as MapCountryId];
                 if (!shape) return null;
@@ -230,7 +258,7 @@ export const MapView = ({
             </g>
           </svg>
           {visibleCountries.map((c) => {
-            const point = toPoint(c);
+            const point = toPoint(c, crop);
             const highlighted = highlightedId === c.id;
             const isCorrect = correctId === c.id;
             const isSelected = selectedId === c.id;
