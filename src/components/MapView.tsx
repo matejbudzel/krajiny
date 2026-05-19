@@ -1,34 +1,21 @@
 import { countries, type Country } from '../data/countries';
+import { mapCenters, type MapCountryId } from '../data/mapCenters';
 
 const WORLD_MAP_URL = `${import.meta.env.BASE_URL}blank-map-world-v2.svg`;
 const MAP_WIDTH = 100;
 const MAP_HEIGHT = 60;
 const WORLD_MAP = {
-  x: -23.041,
-  y: 19.146,
+  x: 0,
+  y: 0,
   width: 913.906,
   height: 402.89,
 };
 const WORLD_MAP_CROP = {
-  x: 490,
+  x: 485,
   y: 95,
-  width: 185,
-  height: 105,
+  width: 190,
+  height: 114,
 };
-
-const CALIBRATED_COUNTRY_CENTERS: Record<string, { x: number; y: number }> = {
-  bd: { x: 656.55, y: 158.89 },
-  bt: { x: 655.05, y: 147.7 },
-  ge: { x: 532.95, y: 104.6 },
-  il: { x: 517.7, y: 129.1 },
-  pk: { x: 599.69, y: 139.25 },
-  tr: { x: 515.6, y: 114.35 },
-};
-
-const projectedSvgPoint = (lat: number, lon: number) => ({
-  x: lon * 2.48545 + 427.97773,
-  y: lat * -2.85511 + 226.72426,
-});
 
 type Props = {
   onSelect: (country: Country) => void;
@@ -39,9 +26,7 @@ type Props = {
 };
 
 const toPoint = (country: Country) => {
-  const svgPoint =
-    CALIBRATED_COUNTRY_CENTERS[country.id] ??
-    projectedSvgPoint(country.lat, country.lon);
+  const svgPoint = mapCenters[country.id as MapCountryId];
   const x =
     ((svgPoint.x - WORLD_MAP_CROP.x) / WORLD_MAP_CROP.width) * MAP_WIDTH;
   const y =
