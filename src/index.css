@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Comic Sans MS', 'Trebuchet MS', system-ui, sans-serif;
+  font-family: 'Inter', 'Trebuchet MS', system-ui, sans-serif;
 }
 
 button:focus-visible {

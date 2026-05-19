@@ -12,8 +12,9 @@ export type Question = {
 
 const wrongCountries = (country: Country): Country[] => countries.filter((c) => c.id !== country.id);
 
-export const generateQuestion = (): Question => {
-  const country = pickN(countries, 1)[0];
+export const generateQuestion = (preferredCountryId?: string): Question => {
+  const preferred = preferredCountryId ? countries.find((c) => c.id === preferredCountryId) : undefined;
+  const country = preferred ?? pickN(countries, 1)[0];
   const type = pickN(['flag-country', 'country-flag', 'map-country', 'country-map-click', 'capital-country', 'country-capital'], 1)[0] as Question['type'];
   const wrong = pickN(wrongCountries(country), 2);
 
