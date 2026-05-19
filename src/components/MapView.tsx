@@ -39,15 +39,28 @@ type Props = {
 };
 
 const toPoint = (country: Country) => {
-  const svgPoint = CALIBRATED_COUNTRY_CENTERS[country.id] ?? projectedSvgPoint(country.lat, country.lon);
-  const x = ((svgPoint.x - WORLD_MAP_CROP.x) / WORLD_MAP_CROP.width) * MAP_WIDTH;
-  const y = ((svgPoint.y - WORLD_MAP_CROP.y) / WORLD_MAP_CROP.height) * MAP_HEIGHT;
+  const svgPoint =
+    CALIBRATED_COUNTRY_CENTERS[country.id] ??
+    projectedSvgPoint(country.lat, country.lon);
+  const x =
+    ((svgPoint.x - WORLD_MAP_CROP.x) / WORLD_MAP_CROP.width) * MAP_WIDTH;
+  const y =
+    ((svgPoint.y - WORLD_MAP_CROP.y) / WORLD_MAP_CROP.height) * MAP_HEIGHT;
   return { x, y };
 };
 
-export const MapView = ({ onSelect, highlightedId, correctId, selectedId, showLabels = false }: Props) => (
+export const MapView = ({
+  onSelect,
+  highlightedId,
+  correctId,
+  selectedId,
+  showLabels = false,
+}: Props) => (
   <div className="rounded-2xl bg-sky-100 p-2">
-    <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="h-72 w-full rounded-xl bg-sky-100">
+    <svg
+      viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+      className="h-72 w-full rounded-xl bg-sky-100"
+    >
       <svg
         x="0"
         y="0"
@@ -70,7 +83,13 @@ export const MapView = ({ onSelect, highlightedId, correctId, selectedId, showLa
         const highlighted = highlightedId === c.id;
         const isCorrect = correctId === c.id;
         const isSelected = selectedId === c.id;
-        const fill = isSelected ? (isCorrect ? '#22c55e' : '#f87171') : (highlighted ? '#f97316' : '#1d4ed8');
+        const fill = isSelected
+          ? isCorrect
+            ? '#22c55e'
+            : '#f87171'
+          : highlighted
+            ? '#f97316'
+            : '#1d4ed8';
         return (
           <g key={c.id}>
             <circle
@@ -83,7 +102,16 @@ export const MapView = ({ onSelect, highlightedId, correctId, selectedId, showLa
               strokeWidth="0.45"
               onClick={() => onSelect(c)}
             />
-            {showLabels && <text x={point.x + 2.5} y={point.y - 2} fontSize="3" fill="#0f172a">{c.name}</text>}
+            {showLabels && (
+              <text
+                x={point.x + 2.5}
+                y={point.y - 2}
+                fontSize="3"
+                fill="#0f172a"
+              >
+                {c.name}
+              </text>
+            )}
           </g>
         );
       })}

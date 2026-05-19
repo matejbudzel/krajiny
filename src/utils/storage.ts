@@ -8,4 +8,5 @@ export const loadScore = (): Score => {
   return JSON.parse(raw) as Score;
 };
 
-export const saveScore = (score: Score) => localStorage.setItem(KEY, JSON.stringify(score));
+export const saveScore = (score: Score) =>
+  localStorage.setItem(KEY, JSON.stringify(score));

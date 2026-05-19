@@ -1,4 +1,4 @@
-export const shuffle = <T,>(items: T[]): T[] => {
+export const shuffle = <T>(items: T[]): T[] => {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -7,4 +7,5 @@ export const shuffle = <T,>(items: T[]): T[] => {
   return copy;
 };
 
-export const pickN = <T,>(items: T[], count: number): T[] => shuffle(items).slice(0, count);
+export const pickN = <T>(items: T[], count: number): T[] =>
+  shuffle(items).slice(0, count);

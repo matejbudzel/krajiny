@@ -15,7 +15,10 @@ const App = () => {
 
   useEffect(() => saveScore(score), [score]);
 
-  const countryById = useMemo(() => new Map(countries.map((c) => [c.id, c])), []);
+  const countryById = useMemo(
+    () => new Map(countries.map((c) => [c.id, c])),
+    [],
+  );
 
   const answer = (value: string) => {
     if (selectedAnswer) return;
@@ -25,14 +28,17 @@ const App = () => {
     setScore((s) => ({
       correct: s.correct + (ok ? 1 : 0),
       wrong: s.wrong + (ok ? 0 : 1),
-      mistakes: ok ? s.mistakes : [...s.mistakes, question.country?.id ?? question.answer],
+      mistakes: ok
+        ? s.mistakes
+        : [...s.mistakes, question.country?.id ?? question.answer],
     }));
   };
 
   const next = () => {
-    const targetMistake = score.mistakes.length > 0 && Math.random() < 0.6
-      ? score.mistakes[Math.floor(Math.random() * score.mistakes.length)]
-      : undefined;
+    const targetMistake =
+      score.mistakes.length > 0 && Math.random() < 0.6
+        ? score.mistakes[Math.floor(Math.random() * score.mistakes.length)]
+        : undefined;
     setQuestion(generateQuestion(targetMistake));
     setResult('');
     setSelectedAnswer(null);
@@ -51,7 +57,9 @@ const App = () => {
 
   return (
     <main className="mx-auto max-w-4xl p-4 text-slate-900">
-      <h1 className="mb-4 text-center text-4xl font-extrabold text-blue-700">🌍 Krajiny hravo</h1>
+      <h1 className="mb-4 text-center text-4xl font-extrabold text-blue-700">
+        🌍 Krajiny hravo
+      </h1>
       <div className="mb-4 flex gap-3">
         <button
           className={`rounded-xl border-4 px-6 py-4 text-2xl font-bold ${learnActive ? 'border-emerald-700 bg-emerald-500 text-white shadow' : 'border-transparent bg-emerald-100 text-emerald-900'}`}
@@ -67,10 +75,21 @@ const App = () => {
         >
           Skúšanie
         </button>
-        {quizActive && <button className="rounded-xl bg-slate-600 px-6 py-4 text-2xl font-bold text-white" onClick={resetProgress}>Reset</button>}
+        {quizActive && (
+          <button
+            className="rounded-xl bg-slate-600 px-6 py-4 text-2xl font-bold text-white"
+            onClick={resetProgress}
+          >
+            Reset
+          </button>
+        )}
       </div>
 
-      {mode === 'quiz' && <p className="mb-3 text-xl">✅ {score.correct} | ❌ {score.wrong}</p>}
+      {mode === 'quiz' && (
+        <p className="mb-3 text-xl">
+          ✅ {score.correct} | ❌ {score.wrong}
+        </p>
+      )}
 
       {mode === 'learn' && (
         <section>
@@ -88,33 +107,88 @@ const App = () => {
       {mode === 'quiz' && (
         <section className="rounded-2xl bg-white p-4 shadow">
           <h2 className="text-2xl font-bold">{question.prompt}</h2>
-          {question.type === 'flag-country' && question.country && <div className="my-4"><FlagView country={question.country} /></div>}
-          {(question.type === 'country-flag' && question.options) && (
-            <div className="my-4 grid grid-cols-3 gap-3">{question.options.map((id) => {
-              const c = countryById.get(id)!;
-              const picked = selectedAnswer === id;
-              const correct = question.answer === id;
-              const revealed = selectedAnswer !== null;
-              const bg = revealed && correct ? 'bg-green-300' : (picked ? 'bg-rose-300' : 'bg-white');
-              const border = revealed && correct ? 'border-4 border-green-600' : 'border-2 border-slate-200';
-              return <button key={id} className={`rounded-xl p-4 ${bg} ${border}`} onClick={() => answer(id)}><FlagView country={c} /></button>;
-            })}</div>
+          {question.type === 'flag-country' && question.country && (
+            <div className="my-4">
+              <FlagView country={question.country} />
+            </div>
           )}
-          {question.type === 'map-country' && question.country && <MapView onSelect={() => {}} highlightedId={question.country.id} />}
-          {question.type === 'country-map-click' && <MapView onSelect={(c) => answer(c.id)} correctId={question.answer} selectedId={selectedAnswer ?? undefined} />}
-          {question.options && question.type !== 'country-flag' && question.type !== 'country-map-click' && (
-            <div className="mt-4 grid gap-3">{question.options.map((option) => {
-              const picked = selectedAnswer === option;
-              const correct = question.answer === option;
-              const revealed = selectedAnswer !== null;
-              const bg = revealed && correct ? 'bg-green-300' : (picked ? 'bg-rose-300' : 'bg-amber-200');
-              const border = revealed && correct ? 'border-4 border-green-600' : 'border-2 border-transparent';
-              return <button key={option} className={`rounded-xl p-4 text-left text-xl font-bold ${bg} ${border}`} onClick={() => answer(option)}>{option}</button>;
-            })}</div>
+          {question.type === 'country-flag' && question.options && (
+            <div className="my-4 grid grid-cols-3 gap-3">
+              {question.options.map((id) => {
+                const c = countryById.get(id)!;
+                const picked = selectedAnswer === id;
+                const correct = question.answer === id;
+                const revealed = selectedAnswer !== null;
+                const bg =
+                  revealed && correct
+                    ? 'bg-green-300'
+                    : picked
+                      ? 'bg-rose-300'
+                      : 'bg-white';
+                const border =
+                  revealed && correct
+                    ? 'border-4 border-green-600'
+                    : 'border-2 border-slate-200';
+                return (
+                  <button
+                    key={id}
+                    className={`rounded-xl p-4 ${bg} ${border}`}
+                    onClick={() => answer(id)}
+                  >
+                    <FlagView country={c} />
+                  </button>
+                );
+              })}
+            </div>
           )}
+          {question.type === 'map-country' && question.country && (
+            <MapView onSelect={() => {}} highlightedId={question.country.id} />
+          )}
+          {question.type === 'country-map-click' && (
+            <MapView
+              onSelect={(c) => answer(c.id)}
+              correctId={question.answer}
+              selectedId={selectedAnswer ?? undefined}
+            />
+          )}
+          {question.options &&
+            question.type !== 'country-flag' &&
+            question.type !== 'country-map-click' && (
+              <div className="mt-4 grid gap-3">
+                {question.options.map((option) => {
+                  const picked = selectedAnswer === option;
+                  const correct = question.answer === option;
+                  const revealed = selectedAnswer !== null;
+                  const bg =
+                    revealed && correct
+                      ? 'bg-green-300'
+                      : picked
+                        ? 'bg-rose-300'
+                        : 'bg-amber-200';
+                  const border =
+                    revealed && correct
+                      ? 'border-4 border-green-600'
+                      : 'border-2 border-transparent';
+                  return (
+                    <button
+                      key={option}
+                      className={`rounded-xl p-4 text-left text-xl font-bold ${bg} ${border}`}
+                      onClick={() => answer(option)}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           {result && <div className="mt-4 text-2xl font-bold">{result}</div>}
           <div className="mt-4 flex gap-3">
-            <button className="rounded-xl bg-indigo-600 px-5 py-3 text-xl font-bold text-white" onClick={next}>Ďalej</button>
+            <button
+              className="rounded-xl bg-indigo-600 px-5 py-3 text-xl font-bold text-white"
+              onClick={next}
+            >
+              Ďalej
+            </button>
           </div>
         </section>
       )}

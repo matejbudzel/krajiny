@@ -2,7 +2,13 @@ import { type Country } from '../data/countries';
 
 const AFGHANISTAN_FLAG_URL = `${import.meta.env.BASE_URL}flag-afghanistan.svg`;
 
-export const FlagView = ({ country, small }: { country: Country; small?: boolean }) => {
+export const FlagView = ({
+  country,
+  small,
+}: {
+  country: Country;
+  small?: boolean;
+}) => {
   if (country.afghanistanCustomFlag) {
     return (
       <img
@@ -12,5 +18,9 @@ export const FlagView = ({ country, small }: { country: Country; small?: boolean
       />
     );
   }
-  return <span className={`${small ? 'text-3xl' : 'text-7xl'} block text-center`}>{country.flag}</span>;
+  return (
+    <span className={`${small ? 'text-3xl' : 'text-7xl'} block text-center`}>
+      {country.flag}
+    </span>
+  );
 };
