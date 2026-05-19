@@ -3,12 +3,6 @@ import { countries, type Country } from '../data/countries';
 const WORLD_MAP_URL = `${import.meta.env.BASE_URL}blank-map-world-v2.svg`;
 const MAP_WIDTH = 100;
 const MAP_HEIGHT = 60;
-const REGION = {
-  minLat: 15,
-  maxLat: 45,
-  minLon: 30,
-  maxLon: 95,
-};
 const WORLD_MAP = {
   x: -23.041,
   y: 19.146,
@@ -17,10 +11,24 @@ const WORLD_MAP = {
 };
 const WORLD_MAP_CROP = {
   x: 490,
-  y: 105,
-  width: 220,
-  height: 135,
+  y: 95,
+  width: 185,
+  height: 105,
 };
+
+const CALIBRATED_COUNTRY_CENTERS: Record<string, { x: number; y: number }> = {
+  bd: { x: 656.55, y: 158.89 },
+  bt: { x: 655.05, y: 147.7 },
+  ge: { x: 532.95, y: 104.6 },
+  il: { x: 517.7, y: 129.1 },
+  pk: { x: 599.69, y: 139.25 },
+  tr: { x: 515.6, y: 114.35 },
+};
+
+const projectedSvgPoint = (lat: number, lon: number) => ({
+  x: lon * 2.48545 + 427.97773,
+  y: lat * -2.85511 + 226.72426,
+});
 
 type Props = {
   onSelect: (country: Country) => void;
@@ -30,9 +38,10 @@ type Props = {
   showLabels?: boolean;
 };
 
-const toPoint = (lat: number, lon: number) => {
-  const x = ((lon - REGION.minLon) / (REGION.maxLon - REGION.minLon)) * MAP_WIDTH;
-  const y = MAP_HEIGHT - ((lat - REGION.minLat) / (REGION.maxLat - REGION.minLat)) * MAP_HEIGHT;
+const toPoint = (country: Country) => {
+  const svgPoint = CALIBRATED_COUNTRY_CENTERS[country.id] ?? projectedSvgPoint(country.lat, country.lon);
+  const x = ((svgPoint.x - WORLD_MAP_CROP.x) / WORLD_MAP_CROP.width) * MAP_WIDTH;
+  const y = ((svgPoint.y - WORLD_MAP_CROP.y) / WORLD_MAP_CROP.height) * MAP_HEIGHT;
   return { x, y };
 };
 
@@ -45,7 +54,7 @@ export const MapView = ({ onSelect, highlightedId, correctId, selectedId, showLa
         width={MAP_WIDTH}
         height={MAP_HEIGHT}
         viewBox={`${WORLD_MAP_CROP.x} ${WORLD_MAP_CROP.y} ${WORLD_MAP_CROP.width} ${WORLD_MAP_CROP.height}`}
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="none"
       >
         <image
           href={WORLD_MAP_URL}
@@ -57,7 +66,7 @@ export const MapView = ({ onSelect, highlightedId, correctId, selectedId, showLa
         />
       </svg>
       {countries.map((c) => {
-        const point = toPoint(c.lat, c.lon);
+        const point = toPoint(c);
         const highlighted = highlightedId === c.id;
         const isCorrect = correctId === c.id;
         const isSelected = selectedId === c.id;

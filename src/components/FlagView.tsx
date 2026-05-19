@@ -8,9 +8,9 @@ export const FlagView = ({ country, small }: { country: Country; small?: boolean
       <img
         src={AFGHANISTAN_FLAG_URL}
         alt={`Vlajka: ${country.name}`}
-        className={`${small ? 'h-10 w-14' : 'h-24 w-36'} rounded object-cover`}
+        className={`${small ? 'h-10 w-14' : 'h-24 w-36'} mx-auto rounded object-cover`}
       />
     );
   }
-  return <span className={small ? 'text-3xl' : 'text-7xl'}>{country.flag}</span>;
+  return <span className={`${small ? 'text-3xl' : 'text-7xl'} block text-center`}>{country.flag}</span>;
 };
