@@ -7,7 +7,11 @@ import {
 } from './data/countries';
 import { FlagView } from './components/FlagView';
 import { MapView } from './components/MapView';
-import { generateQuestion, type Question } from './utils/questions';
+import {
+  generateQuestion,
+  type Question,
+  type QuestionMode,
+} from './utils/questions';
 import { loadScore, saveScore, type Score } from './utils/storage';
 
 const defaultScopes: CountryScope[] = ['grade3-h2'];
@@ -17,6 +21,7 @@ const defaultCountries = countries.filter((country) =>
 
 const App = () => {
   const [mode, setMode] = useState<'learn' | 'quiz'>('learn');
+  const [questionMode, setQuestionMode] = useState<QuestionMode>('full');
   const [selectedScopes, setSelectedScopes] =
     useState<CountryScope[]>(defaultScopes);
   const [selected, setSelected] = useState<Country | null>(null);
@@ -50,8 +55,8 @@ const App = () => {
     setSelected(null);
     setSelectedAnswer(null);
     setResult('');
-    setQuestion(generateQuestion(undefined, filteredCountries));
-  }, [filteredCountries]);
+    setQuestion(generateQuestion(undefined, filteredCountries, questionMode));
+  }, [filteredCountries, questionMode]);
 
   const answer = (value: string) => {
     if (selectedAnswer) return;
@@ -72,7 +77,9 @@ const App = () => {
       score.mistakes.length > 0 && Math.random() < 0.6
         ? score.mistakes[Math.floor(Math.random() * score.mistakes.length)]
         : undefined;
-    setQuestion(generateQuestion(targetMistake, filteredCountries));
+    setQuestion(
+      generateQuestion(targetMistake, filteredCountries, questionMode),
+    );
     setResult('');
     setSelectedAnswer(null);
   };
@@ -82,7 +89,7 @@ const App = () => {
     setSelected(null);
     setSelectedAnswer(null);
     setResult('');
-    setQuestion(generateQuestion(undefined, filteredCountries));
+    setQuestion(generateQuestion(undefined, filteredCountries, questionMode));
   };
 
   const toggleAllScopes = () => {
@@ -103,6 +110,7 @@ const App = () => {
 
   const learnActive = mode === 'learn';
   const quizActive = mode === 'quiz';
+  const simpleQuestions = questionMode === 'simple';
 
   return (
     <main className="mx-auto max-w-4xl p-4 text-slate-900">
@@ -133,6 +141,29 @@ const App = () => {
           </button>
         )}
       </div>
+      <fieldset className="mb-4 rounded-xl bg-white p-3 shadow">
+        <legend className="mb-2 text-lg font-bold">Režim učenia</legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
+            <input
+              type="radio"
+              name="question-mode"
+              checked={!simpleQuestions}
+              onChange={() => setQuestionMode('full')}
+            />
+            Plný režim
+          </label>
+          <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
+            <input
+              type="radio"
+              name="question-mode"
+              checked={simpleQuestions}
+              onChange={() => setQuestionMode('simple')}
+            />
+            1. ročník: názvy a vlajky
+          </label>
+        </div>
+      </fieldset>
       <fieldset className="mb-4 rounded-xl bg-white p-3 shadow">
         <legend className="mb-2 text-lg font-bold">Rozsah</legend>
         <details className="relative">
@@ -185,7 +216,9 @@ const App = () => {
             <div className="mt-4 rounded-2xl bg-white p-4 shadow">
               <FlagView country={selected} />
               <p className="text-2xl font-bold">{selected.name}</p>
-              <p className="text-xl">Hlavné mesto: {selected.capital}</p>
+              {!simpleQuestions && (
+                <p className="text-xl">Hlavné mesto: {selected.capital}</p>
+              )}
             </div>
           )}
         </section>

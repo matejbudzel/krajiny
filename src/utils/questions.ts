@@ -16,6 +16,8 @@ export type Question = {
   feedbackAnswer: string;
 };
 
+export type QuestionMode = 'full' | 'simple';
+
 const wrongCountries = (
   country: Country,
   sourceCountries: Country[],
@@ -24,22 +26,24 @@ const wrongCountries = (
 export const generateQuestion = (
   preferredCountryId?: string,
   sourceCountries: Country[] = countries,
+  mode: QuestionMode = 'full',
 ): Question => {
   const preferred = preferredCountryId
     ? sourceCountries.find((c) => c.id === preferredCountryId)
     : undefined;
   const country = preferred ?? pickN(sourceCountries, 1)[0];
-  const type = pickN(
-    [
-      'flag-country',
-      'country-flag',
-      'map-country',
-      'country-map-click',
-      'capital-country',
-      'country-capital',
-    ],
-    1,
-  )[0] as Question['type'];
+  const questionTypes: Question['type'][] =
+    mode === 'simple'
+      ? ['flag-country', 'country-flag']
+      : [
+          'flag-country',
+          'country-flag',
+          'map-country',
+          'country-map-click',
+          'capital-country',
+          'country-capital',
+        ];
+  const type = pickN(questionTypes, 1)[0];
   const wrong = pickN(wrongCountries(country, sourceCountries), 2);
 
   if (type === 'country-map-click') {
