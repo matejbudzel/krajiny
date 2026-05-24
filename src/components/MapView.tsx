@@ -86,6 +86,11 @@ const countryFill = (
 
 const sanitizeMapElement = (element: Element) => {
   const clone = element.cloneNode(true) as Element;
+
+  for (const marker of Array.from(clone.querySelectorAll('[id$="."]'))) {
+    marker.remove();
+  }
+
   const sanitize = (node: Element) => {
     for (const attribute of [
       'id',
