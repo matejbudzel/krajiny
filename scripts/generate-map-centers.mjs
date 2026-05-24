@@ -280,6 +280,7 @@ const pathPoints = (d) => {
 };
 
 const boxes = {};
+const componentBoxes = {};
 const stack = [];
 
 for (const match of svg.matchAll(/<\/?[^>]+>/g)) {
@@ -303,6 +304,13 @@ for (const match of svg.matchAll(/<\/?[^>]+>/g)) {
   );
 
   if (name === 'path' && country && attributes.d) {
+    const pathBox = {
+      minX: Infinity,
+      minY: Infinity,
+      maxX: -Infinity,
+      maxY: -Infinity,
+    };
+
     for (const point of pathPoints(attributes.d).map((pathPoint) =>
       applyMatrix(pathPoint, matrix),
     )) {
@@ -316,6 +324,15 @@ for (const match of svg.matchAll(/<\/?[^>]+>/g)) {
       box.minY = Math.min(box.minY, point.y);
       box.maxX = Math.max(box.maxX, point.x);
       box.maxY = Math.max(box.maxY, point.y);
+
+      pathBox.minX = Math.min(pathBox.minX, point.x);
+      pathBox.minY = Math.min(pathBox.minY, point.y);
+      pathBox.maxX = Math.max(pathBox.maxX, point.x);
+      pathBox.maxY = Math.max(pathBox.maxY, point.y);
+    }
+
+    if (Number.isFinite(pathBox.minX)) {
+      (componentBoxes[country] ??= []).push(pathBox);
     }
   }
 
@@ -326,7 +343,12 @@ for (const match of svg.matchAll(/<\/?[^>]+>/g)) {
 
 const centers = {};
 for (const id of countryIds) {
-  const box = boxes[id];
+  const box =
+    componentBoxes[id]?.toSorted(
+      (a, b) =>
+        (b.maxX - b.minX) * (b.maxY - b.minY) -
+        (a.maxX - a.minX) * (a.maxY - a.minY),
+    )[0] ?? boxes[id];
   if (!box) throw new Error(`Could not find country "${id}" in SVG.`);
 
   centers[id] = {
