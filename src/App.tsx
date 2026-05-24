@@ -20,7 +20,7 @@ const defaultCountries = countries.filter((country) =>
   defaultScopes.includes(country.scope),
 );
 const defaultScheduler = createQuizSchedulerState();
-const AUTO_ADVANCE_MS = 4000;
+const AUTO_ADVANCE_MS = 3000;
 
 const App = () => {
   const [mode, setMode] = useState<'learn' | 'quiz'>('learn');
