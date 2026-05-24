@@ -7,17 +7,19 @@ import {
 } from './data/countries';
 import { FlagView } from './components/FlagView';
 import { MapView } from './components/MapView';
+import { type Question, type QuestionMode } from './utils/questions';
 import {
-  generateQuestion,
-  type Question,
-  type QuestionMode,
-} from './utils/questions';
+  createQuizSchedulerState,
+  generateScheduledQuestion,
+  recordScheduledAnswer,
+} from './utils/quizScheduler';
 import { loadScore, saveScore, type Score } from './utils/storage';
 
 const defaultScopes: CountryScope[] = ['grade3-h2'];
 const defaultCountries = countries.filter((country) =>
   defaultScopes.includes(country.scope),
 );
+const defaultScheduler = createQuizSchedulerState();
 
 const App = () => {
   const [mode, setMode] = useState<'learn' | 'quiz'>('learn');
@@ -26,8 +28,9 @@ const App = () => {
     useState<CountryScope[]>(defaultScopes);
   const [selected, setSelected] = useState<Country | null>(null);
   const [question, setQuestion] = useState<Question>(() =>
-    generateQuestion(undefined, defaultCountries),
+    generateScheduledQuestion(defaultScheduler, defaultCountries, 'full'),
   );
+  const [quizScheduler, setQuizScheduler] = useState(defaultScheduler);
   const [result, setResult] = useState<string>('');
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [score, setScore] = useState<Score>(() => loadScore());
@@ -54,10 +57,14 @@ const App = () => {
     questionMode === 'simple' ? '1. ročník: názvy a vlajky' : 'Plný režim';
 
   useEffect(() => {
+    const nextScheduler = createQuizSchedulerState();
+    setQuizScheduler(nextScheduler);
     setSelected(null);
     setSelectedAnswer(null);
     setResult('');
-    setQuestion(generateQuestion(undefined, filteredCountries, questionMode));
+    setQuestion(
+      generateScheduledQuestion(nextScheduler, filteredCountries, questionMode),
+    );
   }, [filteredCountries, questionMode]);
 
   const answer = (value: string) => {
@@ -65,6 +72,7 @@ const App = () => {
     const ok = value === question.answer;
     setSelectedAnswer(value);
     setResult(ok ? 'Správne!' : 'Skoro.');
+    setQuizScheduler((current) => recordScheduledAnswer(current, question, ok));
     setScore((s) => ({
       correct: s.correct + (ok ? 1 : 0),
       wrong: s.wrong + (ok ? 0 : 1),
@@ -75,23 +83,23 @@ const App = () => {
   };
 
   const next = () => {
-    const targetMistake =
-      score.mistakes.length > 0 && Math.random() < 0.6
-        ? score.mistakes[Math.floor(Math.random() * score.mistakes.length)]
-        : undefined;
     setQuestion(
-      generateQuestion(targetMistake, filteredCountries, questionMode),
+      generateScheduledQuestion(quizScheduler, filteredCountries, questionMode),
     );
     setResult('');
     setSelectedAnswer(null);
   };
 
   const resetProgress = () => {
+    const nextScheduler = createQuizSchedulerState();
+    setQuizScheduler(nextScheduler);
     setScore({ correct: 0, wrong: 0, mistakes: [] });
     setSelected(null);
     setSelectedAnswer(null);
     setResult('');
-    setQuestion(generateQuestion(undefined, filteredCountries, questionMode));
+    setQuestion(
+      generateScheduledQuestion(nextScheduler, filteredCountries, questionMode),
+    );
   };
 
   const toggleAllScopes = () => {

@@ -5,18 +5,32 @@ export type Question = {
   prompt: string;
   options?: string[];
   answer: string;
-  type:
-    | 'flag-country'
-    | 'country-flag'
-    | 'map-country'
-    | 'country-map-click'
-    | 'capital-country'
-    | 'country-capital';
+  type: QuestionType;
   country?: Country;
   feedbackAnswer: string;
 };
 
+export type QuestionType =
+  | 'flag-country'
+  | 'country-flag'
+  | 'map-country'
+  | 'country-map-click'
+  | 'capital-country'
+  | 'country-capital';
+
 export type QuestionMode = 'full' | 'simple';
+
+export const questionTypesForMode = (mode: QuestionMode): QuestionType[] =>
+  mode === 'simple'
+    ? ['flag-country', 'country-flag']
+    : [
+        'flag-country',
+        'country-flag',
+        'map-country',
+        'country-map-click',
+        'capital-country',
+        'country-capital',
+      ];
 
 const wrongCountries = (
   country: Country,
@@ -27,23 +41,17 @@ export const generateQuestion = (
   preferredCountryId?: string,
   sourceCountries: Country[] = countries,
   mode: QuestionMode = 'full',
+  preferredType?: QuestionType,
 ): Question => {
   const preferred = preferredCountryId
     ? sourceCountries.find((c) => c.id === preferredCountryId)
     : undefined;
   const country = preferred ?? pickN(sourceCountries, 1)[0];
-  const questionTypes: Question['type'][] =
-    mode === 'simple'
-      ? ['flag-country', 'country-flag']
-      : [
-          'flag-country',
-          'country-flag',
-          'map-country',
-          'country-map-click',
-          'capital-country',
-          'country-capital',
-        ];
-  const type = pickN(questionTypes, 1)[0];
+  const questionTypes = questionTypesForMode(mode);
+  const type =
+    preferredType && questionTypes.includes(preferredType)
+      ? preferredType
+      : pickN(questionTypes, 1)[0];
   const wrong = pickN(wrongCountries(country, sourceCountries), 2);
 
   if (type === 'country-map-click') {
