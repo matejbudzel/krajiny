@@ -19,7 +19,7 @@ const MAP_CROP_PADDING = {
   x: 24,
   y: 22,
 };
-const ZOOM_LEVELS = [1, 1.45, 1.9] as const;
+const ZOOM_LEVELS = [1, 1.35, 1.7, 2.2, 2.8, 3.6, 4.6] as const;
 const MAX_ZOOM_INDEX = ZOOM_LEVELS.length - 1;
 type MapShapes = Partial<Record<MapCountryId, string>>;
 type LoadedMap = {
@@ -166,6 +166,7 @@ export const MapView = ({
   const zoom = ZOOM_LEVELS[zoomIndex];
   const canZoomOut = zoomIndex > 0;
   const canZoomIn = zoomIndex < MAX_ZOOM_INDEX;
+  const zoomPercent = Math.round(zoom * 100);
   const dotRadius = 1.9 / zoom;
   const highlightedDotRadius = 2.4 / zoom;
   const dotStrokeWidth = 0.45 / zoom;
@@ -182,7 +183,7 @@ export const MapView = ({
 
   return (
     <div className="rounded-2xl bg-sky-100 p-2">
-      <div className="mb-2 flex justify-end gap-1">
+      <div className="mb-2 flex items-center justify-end gap-1">
         <button
           type="button"
           className="h-10 w-10 rounded-lg border border-blue-200 bg-white text-xl font-bold text-blue-900 disabled:cursor-not-allowed disabled:opacity-40"
@@ -191,6 +192,15 @@ export const MapView = ({
           aria-label="Oddialiť mapu"
         >
           −
+        </button>
+        <button
+          type="button"
+          className="h-10 min-w-16 rounded-lg border border-blue-200 bg-white px-2 text-sm font-bold text-blue-900 disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={() => setZoomIndex(0)}
+          disabled={!canZoomOut}
+          aria-label="Obnoviť priblíženie mapy"
+        >
+          {zoomPercent}%
         </button>
         <button
           type="button"

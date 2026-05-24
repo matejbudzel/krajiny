@@ -39,6 +39,12 @@ const App = () => {
   );
   const allScopesSelected =
     selectedScopes.length === countryScopeOptions.length;
+  const selectedScopeSummary = allScopesSelected
+    ? 'Všetko'
+    : countryScopeOptions
+        .filter((scope) => selectedScopes.includes(scope.id))
+        .map((scope) => scope.label)
+        .join(', ');
 
   useEffect(() => {
     setSelected(null);
@@ -129,29 +135,37 @@ const App = () => {
       </div>
       <fieldset className="mb-4 rounded-xl bg-white p-3 shadow">
         <legend className="mb-2 text-lg font-bold">Rozsah</legend>
-        <div className="grid gap-2 sm:grid-cols-3">
-          <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
-            <input
-              type="checkbox"
-              checked={allScopesSelected}
-              onChange={toggleAllScopes}
-            />
-            Všetko
-          </label>
-          {countryScopeOptions.map((scope) => (
-            <label
-              key={scope.id}
-              className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold"
-            >
+        <details className="relative">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg bg-slate-100 px-4 py-3 text-lg font-bold marker:hidden">
+            <span className="min-w-0 truncate">{selectedScopeSummary}</span>
+            <span className="shrink-0 text-slate-500">▾</span>
+          </summary>
+          <div className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+            <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
               <input
                 type="checkbox"
-                checked={selectedScopes.includes(scope.id)}
-                onChange={() => toggleScope(scope.id)}
+                checked={allScopesSelected}
+                onChange={toggleAllScopes}
               />
-              {scope.label}
+              Všetko
             </label>
-          ))}
-        </div>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {countryScopeOptions.map((scope) => (
+                <label
+                  key={scope.id}
+                  className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedScopes.includes(scope.id)}
+                    onChange={() => toggleScope(scope.id)}
+                  />
+                  {scope.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        </details>
       </fieldset>
 
       {mode === 'quiz' && (
