@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   countries,
   countryScopeOptions,
@@ -20,6 +20,7 @@ const defaultCountries = countries.filter((country) =>
   defaultScopes.includes(country.scope),
 );
 const defaultScheduler = createQuizSchedulerState();
+const AUTO_ADVANCE_MS = 4000;
 
 const App = () => {
   const [mode, setMode] = useState<'learn' | 'quiz'>('learn');
@@ -33,6 +34,7 @@ const App = () => {
   const [quizScheduler, setQuizScheduler] = useState(defaultScheduler);
   const [result, setResult] = useState<string>('');
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [autoAdvanceProgress, setAutoAdvanceProgress] = useState(0);
   const [score, setScore] = useState<Score>(() => loadScore());
 
   useEffect(() => saveScore(score), [score]);
@@ -61,6 +63,7 @@ const App = () => {
     setQuizScheduler(nextScheduler);
     setSelected(null);
     setSelectedAnswer(null);
+    setAutoAdvanceProgress(0);
     setResult('');
     setQuestion(
       generateScheduledQuestion(nextScheduler, filteredCountries, questionMode),
@@ -82,13 +85,33 @@ const App = () => {
     }));
   };
 
-  const next = () => {
+  const next = useCallback(() => {
     setQuestion(
       generateScheduledQuestion(quizScheduler, filteredCountries, questionMode),
     );
     setResult('');
     setSelectedAnswer(null);
-  };
+    setAutoAdvanceProgress(0);
+  }, [filteredCountries, questionMode, quizScheduler]);
+
+  useEffect(() => {
+    if (!selectedAnswer || selectedAnswer !== question.answer) {
+      setAutoAdvanceProgress(0);
+      return;
+    }
+
+    const startedAt = Date.now();
+    const interval = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      setAutoAdvanceProgress(Math.min(100, (elapsed / AUTO_ADVANCE_MS) * 100));
+    }, 50);
+    const timeout = window.setTimeout(next, AUTO_ADVANCE_MS);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+    };
+  }, [next, question.answer, selectedAnswer]);
 
   const resetProgress = () => {
     const nextScheduler = createQuizSchedulerState();
@@ -96,6 +119,7 @@ const App = () => {
     setScore({ correct: 0, wrong: 0, mistakes: [] });
     setSelected(null);
     setSelectedAnswer(null);
+    setAutoAdvanceProgress(0);
     setResult('');
     setQuestion(
       generateScheduledQuestion(nextScheduler, filteredCountries, questionMode),
@@ -121,6 +145,11 @@ const App = () => {
   const learnActive = mode === 'learn';
   const quizActive = mode === 'quiz';
   const simpleQuestions = questionMode === 'simple';
+  const correctAnswerSelected = selectedAnswer === question.answer;
+  const autoAdvanceSeconds = Math.max(
+    1,
+    Math.ceil((AUTO_ADVANCE_MS * (1 - autoAdvanceProgress / 100)) / 1000),
+  );
 
   return (
     <main className="mx-auto max-w-4xl p-4 text-slate-900">
@@ -329,10 +358,17 @@ const App = () => {
           {result && <div className="mt-4 text-2xl font-bold">{result}</div>}
           <div className="mt-4 flex gap-3">
             <button
-              className="rounded-xl bg-indigo-600 px-5 py-3 text-xl font-bold text-white"
+              className="rounded-xl px-5 py-3 text-xl font-bold text-white transition-colors"
               onClick={next}
+              style={{
+                background: correctAnswerSelected
+                  ? `linear-gradient(90deg, #22c55e ${autoAdvanceProgress}%, #4f46e5 ${autoAdvanceProgress}%)`
+                  : '#4f46e5',
+              }}
             >
-              Ďalej
+              {correctAnswerSelected
+                ? `Ďalej (${autoAdvanceSeconds})`
+                : 'Ďalej'}
             </button>
           </div>
         </section>
