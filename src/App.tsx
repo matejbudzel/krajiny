@@ -50,6 +50,8 @@ const App = () => {
         .filter((scope) => selectedScopes.includes(scope.id))
         .map((scope) => scope.label)
         .join(', ');
+  const questionModeSummary =
+    questionMode === 'simple' ? '1. ročník: názvy a vlajky' : 'Plný režim';
 
   useEffect(() => {
     setSelected(null);
@@ -117,61 +119,63 @@ const App = () => {
       <h1 className="mb-4 text-center text-4xl font-extrabold text-blue-700">
         🌍 Krajiny hravo
       </h1>
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:flex sm:gap-3">
+      <div className="mb-4 flex flex-wrap items-stretch gap-2 rounded-xl bg-white p-2 shadow">
         <button
-          className={`whitespace-nowrap rounded-xl border-4 px-3 py-3 text-lg font-bold sm:px-6 sm:py-4 sm:text-2xl ${learnActive ? 'border-emerald-700 bg-emerald-500 text-white shadow' : 'border-transparent bg-emerald-100 text-emerald-900'}`}
+          className={`min-h-11 flex-1 self-stretch whitespace-nowrap rounded-lg border-2 px-3 py-2 text-base font-bold sm:flex-none sm:text-lg ${learnActive ? 'border-emerald-700 bg-emerald-500 text-white shadow' : 'border-transparent bg-emerald-100 text-emerald-900'}`}
           onClick={() => setMode('learn')}
           aria-pressed={learnActive}
         >
           Učím sa
         </button>
         <button
-          className={`whitespace-nowrap rounded-xl border-4 px-3 py-3 text-lg font-bold sm:px-6 sm:py-4 sm:text-2xl ${quizActive ? 'border-fuchsia-700 bg-fuchsia-500 text-white shadow' : 'border-transparent bg-fuchsia-100 text-fuchsia-900'}`}
+          className={`min-h-11 flex-1 self-stretch whitespace-nowrap rounded-lg border-2 px-3 py-2 text-base font-bold sm:flex-none sm:text-lg ${quizActive ? 'border-fuchsia-700 bg-fuchsia-500 text-white shadow' : 'border-transparent bg-fuchsia-100 text-fuchsia-900'}`}
           onClick={() => setMode('quiz')}
           aria-pressed={quizActive}
         >
           Skúšanie
         </button>
-        {quizActive && (
-          <button
-            className="col-span-2 whitespace-nowrap rounded-xl bg-slate-600 px-3 py-3 text-lg font-bold text-white sm:col-span-1 sm:px-6 sm:py-4 sm:text-2xl"
-            onClick={resetProgress}
-          >
-            Reset
-          </button>
-        )}
-      </div>
-      <fieldset className="mb-4 rounded-xl bg-white p-3 shadow">
-        <legend className="mb-2 text-lg font-bold">Režim učenia</legend>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
-            <input
-              type="radio"
-              name="question-mode"
-              checked={!simpleQuestions}
-              onChange={() => setQuestionMode('full')}
-            />
-            Plný režim
-          </label>
-          <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
-            <input
-              type="radio"
-              name="question-mode"
-              checked={simpleQuestions}
-              onChange={() => setQuestionMode('simple')}
-            />
-            1. ročník: názvy a vlajky
-          </label>
-        </div>
-      </fieldset>
-      <fieldset className="mb-4 rounded-xl bg-white p-3 shadow">
-        <legend className="mb-2 text-lg font-bold">Rozsah</legend>
-        <details className="relative">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg bg-slate-100 px-4 py-3 text-lg font-bold marker:hidden">
-            <span className="min-w-0 truncate">{selectedScopeSummary}</span>
+        <details className="relative min-w-0 flex-[1_1_11rem] self-stretch sm:flex-[1_1_13rem]">
+          <summary className="flex h-full min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold marker:hidden sm:text-base">
+            <span className="min-w-0">
+              <span className="block text-xs font-semibold text-slate-500">
+                Režim učenia
+              </span>
+              <span className="block truncate">{questionModeSummary}</span>
+            </span>
             <span className="shrink-0 text-slate-500">▾</span>
           </summary>
-          <div className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+          <div className="absolute z-30 mt-2 w-full min-w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
+            <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
+              <input
+                type="radio"
+                name="question-mode"
+                checked={!simpleQuestions}
+                onChange={() => setQuestionMode('full')}
+              />
+              Plný režim
+            </label>
+            <label className="mt-2 flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
+              <input
+                type="radio"
+                name="question-mode"
+                checked={simpleQuestions}
+                onChange={() => setQuestionMode('simple')}
+              />
+              1. ročník: názvy a vlajky
+            </label>
+          </div>
+        </details>
+        <details className="relative min-w-0 flex-[1_1_11rem] self-stretch sm:flex-[1_1_13rem]">
+          <summary className="flex h-full min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold marker:hidden sm:text-base">
+            <span className="min-w-0">
+              <span className="block text-xs font-semibold text-slate-500">
+                Rozsah
+              </span>
+              <span className="block truncate">{selectedScopeSummary}</span>
+            </span>
+            <span className="shrink-0 text-slate-500">▾</span>
+          </summary>
+          <div className="absolute right-0 z-30 mt-2 max-h-72 w-full min-w-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
             <label className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 font-bold">
               <input
                 type="checkbox"
@@ -197,7 +201,15 @@ const App = () => {
             </div>
           </div>
         </details>
-      </fieldset>
+        {quizActive && (
+          <button
+            className="min-h-11 flex-1 self-stretch whitespace-nowrap rounded-lg bg-slate-600 px-3 py-2 text-base font-bold text-white sm:flex-none sm:text-lg"
+            onClick={resetProgress}
+          >
+            Reset
+          </button>
+        )}
+      </div>
 
       {mode === 'quiz' && (
         <p className="mb-3 text-xl">
