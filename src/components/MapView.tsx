@@ -156,6 +156,7 @@ export const MapView = ({
 }: Props) => {
   const [zoomIndex, setZoomIndex] = useState(0);
   const [hoveredId, setHoveredId] = useState<string>();
+  const [coarsePointer, setCoarsePointer] = useState(false);
   const [loadedMap, setLoadedMap] = useState<LoadedMap>({
     appShapes: {},
     allShapes: {},
@@ -184,6 +185,14 @@ export const MapView = ({
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia('(pointer: coarse)');
+    const update = () => setCoarsePointer(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
   }, []);
 
   return (
@@ -285,8 +294,20 @@ export const MapView = ({
                 : highlighted
                   ? '#f97316'
                   : '#1d4ed8';
+            const tapRadius = Math.max(3.2 / zoom, dotRadius * 1.8);
+            const coarseTapRadius = Math.max(5.5 / zoom, dotRadius * 2.8);
             return (
               <g key={c.id}>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={coarsePointer ? coarseTapRadius : tapRadius}
+                  className="map-country-hit-area cursor-pointer"
+                  fill="transparent"
+                  onClick={() => onSelect(c)}
+                  onMouseEnter={() => setHoveredId(c.id)}
+                  onMouseLeave={() => setHoveredId(undefined)}
+                />
                 <circle
                   cx={point.x}
                   cy={point.y}

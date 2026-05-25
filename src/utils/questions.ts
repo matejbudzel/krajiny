@@ -22,7 +22,7 @@ export type QuestionMode = 'full' | 'simple';
 
 export const questionTypesForMode = (mode: QuestionMode): QuestionType[] =>
   mode === 'simple'
-    ? ['flag-country', 'country-flag']
+    ? ['flag-country', 'country-flag', 'map-country', 'country-map-click']
     : [
         'flag-country',
         'country-flag',

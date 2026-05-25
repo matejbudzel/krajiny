@@ -10,7 +10,7 @@ describe('generateQuestion', () => {
     expect(new Set(q.options).size).toBe(3);
   });
 
-  it('uses only flag and country-name questions in simple mode', () => {
+  it('uses no capital questions in simple mode', () => {
     const questionTypes = Array.from(
       { length: 30 },
       () => generateQuestion(undefined, undefined, 'simple').type,
@@ -18,7 +18,7 @@ describe('generateQuestion', () => {
 
     expect(
       questionTypes.every(
-        (type) => type === 'country-flag' || type === 'flag-country',
+        (type) => type !== 'capital-country' && type !== 'country-capital',
       ),
     ).toBe(true);
   });
