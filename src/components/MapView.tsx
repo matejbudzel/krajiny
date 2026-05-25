@@ -5,6 +5,7 @@ import { mapCenters, type MapCountryId } from '../data/mapCenters';
 const WORLD_MAP_URL = `${import.meta.env.BASE_URL}blank-map-world-v2.svg`;
 const MAP_WIDTH = 100;
 const MAP_HEIGHT = 60;
+const MAP_ASPECT_RATIO = MAP_WIDTH / MAP_HEIGHT;
 const MAP_SHAPE_OFFSET = {
   x: 23.041,
   y: -19.146,
@@ -21,6 +22,10 @@ const MAP_CROP_PADDING = {
 };
 const ZOOM_LEVELS = [1, 1.35, 1.7, 2.2, 2.8, 3.6, 4.6] as const;
 const MAX_ZOOM_INDEX = ZOOM_LEVELS.length - 1;
+const MERGED_MAP_SHAPE_IDS: Partial<Record<MapCountryId, string[]>> = {
+  sd: ['path8409'],
+};
+type MapCrop = typeof DEFAULT_WORLD_MAP_CROP;
 type MapShapes = Partial<Record<MapCountryId, string>>;
 type LoadedMap = {
   appShapes: MapShapes;
@@ -39,6 +44,28 @@ type Props = {
   showLabels?: boolean;
 };
 
+const cropWithDisplayAspectRatio = (crop: MapCrop): MapCrop => {
+  const cropAspectRatio = crop.width / crop.height;
+
+  if (cropAspectRatio > MAP_ASPECT_RATIO) {
+    const height = crop.width / MAP_ASPECT_RATIO;
+    return {
+      x: crop.x,
+      y: crop.y - (height - crop.height) / 2,
+      width: crop.width,
+      height,
+    };
+  }
+
+  const width = crop.height * MAP_ASPECT_RATIO;
+  return {
+    x: crop.x - (width - crop.width) / 2,
+    y: crop.y,
+    width,
+    height: crop.height,
+  };
+};
+
 const cropForCountries = (visibleCountries: Country[]) => {
   if (visibleCountries.length === 0) return DEFAULT_WORLD_MAP_CROP;
 
@@ -50,15 +77,15 @@ const cropForCountries = (visibleCountries: Country[]) => {
   const minY = Math.min(...points.map((point) => point.y));
   const maxY = Math.max(...points.map((point) => point.y));
 
-  return {
+  return cropWithDisplayAspectRatio({
     x: minX - MAP_CROP_PADDING.x,
     y: minY - MAP_CROP_PADDING.y,
     width: maxX - minX + MAP_CROP_PADDING.x * 2,
     height: maxY - minY + MAP_CROP_PADDING.y * 2,
-  };
+  });
 };
 
-const toPoint = (country: Country, crop: typeof DEFAULT_WORLD_MAP_CROP) => {
+const toPoint = (country: Country, crop: MapCrop) => {
   const svgPoint = mapCenters[country.id as MapCountryId];
   const x = ((svgPoint.x - crop.x) / crop.width) * MAP_WIDTH;
   const y = ((svgPoint.y - crop.y) / crop.height) * MAP_HEIGHT;
@@ -113,6 +140,23 @@ const sanitizeMapElement = (element: Element) => {
   return clone.outerHTML;
 };
 
+const mergedShapeHtml = (
+  document: Document,
+  countryId: MapCountryId,
+  mainElement: Element,
+) => {
+  const shapeIds = MERGED_MAP_SHAPE_IDS[countryId] ?? [];
+  const mergedParts = [
+    sanitizeMapElement(mainElement),
+    ...shapeIds
+      .map((shapeId) => document.getElementById(shapeId))
+      .filter((element): element is HTMLElement => element !== null)
+      .map((element) => sanitizeMapElement(element)),
+  ];
+
+  return mergedParts.join('');
+};
+
 const loadMapShapes = () => {
   mapShapesPromise ??= fetch(WORLD_MAP_URL)
     .then((response) => {
@@ -127,7 +171,11 @@ const loadMapShapes = () => {
       for (const country of countries) {
         const element = document.getElementById(country.id);
         if (element) {
-          appShapes[country.id as MapCountryId] = sanitizeMapElement(element);
+          appShapes[country.id as MapCountryId] = mergedShapeHtml(
+            document,
+            country.id as MapCountryId,
+            element,
+          );
         }
       }
 
@@ -135,7 +183,11 @@ const loadMapShapes = () => {
         document.querySelectorAll<SVGElement>('path[id], g[id]'),
       )) {
         if (/^[a-z]{2}$/.test(element.id)) {
-          allShapes[element.id] = sanitizeMapElement(element);
+          allShapes[element.id] = mergedShapeHtml(
+            document,
+            element.id as MapCountryId,
+            element,
+          );
         }
       }
 
@@ -240,7 +292,7 @@ export const MapView = ({
             width={MAP_WIDTH}
             height={MAP_HEIGHT}
             viewBox={`${crop.x} ${crop.y} ${crop.width} ${crop.height}`}
-            preserveAspectRatio="none"
+            preserveAspectRatio="xMidYMid meet"
           >
             <g
               className="pointer-events-none"
