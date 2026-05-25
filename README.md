@@ -1,4 +1,4 @@
-# Krajiny hravo
+# Ucenie hravo
 
 Interaktívna detská geografická aplikácia v slovenčine (React + Vite + TypeScript + Tailwind CSS).
 

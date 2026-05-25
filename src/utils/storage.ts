@@ -1,4 +1,4 @@
-const KEY = 'geo-kids-score';
+const KEY = 'ucenie-hravo-score';
 
 export type Score = { correct: number; wrong: number; mistakes: string[] };
 

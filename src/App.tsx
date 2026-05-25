@@ -173,20 +173,32 @@ const App = () => {
     );
   };
 
+  const hardResetProgress = () => {
+    setScore({ correct: 0, wrong: 0, mistakes: [] });
+    setSelected(null);
+    setSelectedAnswer(null);
+    setAutoAdvanceProgress(0);
+    setResult('');
+  };
+
   const toggleAllScopes = () => {
     setSelectedScopes(
       allScopesSelected
         ? defaultScopes
         : countryScopeOptions.map((scope) => scope.id),
     );
+    hardResetProgress();
   };
 
   const toggleScope = (scope: CountryScope) => {
-    setSelectedScopes((current) => {
-      if (!current.includes(scope)) return [...current, scope];
-      if (current.length === 1) return current;
-      return current.filter((selectedScope) => selectedScope !== scope);
-    });
+    if (selectedScopes.includes(scope) && selectedScopes.length === 1) return;
+
+    setSelectedScopes(
+      selectedScopes.includes(scope)
+        ? selectedScopes.filter((selectedScope) => selectedScope !== scope)
+        : [...selectedScopes, scope],
+    );
+    hardResetProgress();
   };
 
   const learnActive = mode === 'learn';
@@ -203,7 +215,7 @@ const App = () => {
   return (
     <main className="mx-auto max-w-4xl p-4 text-slate-900">
       <h1 className="mb-4 text-center text-4xl font-extrabold text-blue-700">
-        🌍 Krajiny hravo
+        🌍 Ucenie hravo
       </h1>
       <div className="mb-4 flex flex-wrap items-stretch gap-2 rounded-xl bg-white p-2 shadow">
         <button
