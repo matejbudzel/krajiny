@@ -59,6 +59,28 @@ const App = () => {
 
   useEffect(() => saveScore(score), [score]);
 
+  useEffect(() => {
+    const closeDropdownsOnOutsideClick = (event: PointerEvent) => {
+      if (!(event.target instanceof Node)) return;
+
+      document
+        .querySelectorAll<HTMLDetailsElement>(
+          'details[data-close-on-outside][open]',
+        )
+        .forEach((details) => {
+          if (!details.contains(event.target as Node)) {
+            details.open = false;
+          }
+        });
+    };
+
+    document.addEventListener('pointerdown', closeDropdownsOnOutsideClick);
+
+    return () => {
+      document.removeEventListener('pointerdown', closeDropdownsOnOutsideClick);
+    };
+  }, []);
+
   const filteredCountries = useMemo(
     () => countries.filter((country) => selectedScopes.includes(country.scope)),
     [selectedScopes],
@@ -293,7 +315,10 @@ const App = () => {
           Skúšanie
         </button>
         {countriesActive && (
-          <details className="relative min-w-0 flex-[1_1_11rem] self-stretch sm:flex-[1_1_13rem]">
+          <details
+            className="relative min-w-0 flex-[1_1_11rem] self-stretch sm:flex-[1_1_13rem]"
+            data-close-on-outside
+          >
             <summary className="flex h-full min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold marker:hidden sm:text-base">
               <span className="min-w-0">
                 <span className="block text-xs font-semibold text-slate-500">
@@ -326,7 +351,10 @@ const App = () => {
           </details>
         )}
         {countriesActive && (
-          <details className="relative min-w-0 flex-[1_1_11rem] self-stretch sm:flex-[1_1_13rem]">
+          <details
+            className="relative min-w-0 flex-[1_1_11rem] self-stretch sm:flex-[1_1_13rem]"
+            data-close-on-outside
+          >
             <summary className="flex h-full min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold marker:hidden sm:text-base">
               <span className="min-w-0">
                 <span className="block text-xs font-semibold text-slate-500">
@@ -364,7 +392,10 @@ const App = () => {
           </details>
         )}
         {historyActive && (
-          <details className="relative min-w-0 flex-[1_1_11rem] self-stretch sm:flex-[1_1_13rem]">
+          <details
+            className="relative min-w-0 flex-[1_1_11rem] self-stretch sm:flex-[1_1_13rem]"
+            data-close-on-outside
+          >
             <summary className="flex h-full min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold marker:hidden sm:text-base">
               <span className="min-w-0">
                 <span className="block text-xs font-semibold text-slate-500">
