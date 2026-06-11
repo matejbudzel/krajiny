@@ -1,6 +1,6 @@
 # Učenie hravo
 
-Interaktívna detská geografická aplikácia v slovenčine (React + Vite + TypeScript + Tailwind CSS).
+Interaktívna detská vzdelávacia aplikácia v slovenčine (React + Vite + TypeScript + Tailwind CSS).
 
 ## Spustenie lokálne
 
@@ -27,8 +27,10 @@ Aplikácia je pripravená na deploy pod subpath repozitára (`https://<user>.git
 
 ## Funkcie
 
-- Režim učenia s klikateľnou mapou.
-- 6 typov kvízových otázok.
+- Predmety: krajiny, dejiny a náboženstvo.
+- Režim učenia a skúšania.
+- Klikateľná mapa pri krajinách.
+- Rôzne typy kvízových otázok podľa predmetu.
 - Okamžitá spätná väzba.
 - Evidencia správnych/nesprávnych odpovedí.
 - Ukladanie progresu do `localStorage`.
